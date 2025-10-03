@@ -1,8 +1,8 @@
 let canvas, ctx;
 let cellPx = 24;
 
-export function initRenderer(){
-  canvas = document.getElementById('game');
+function initRenderer(){
+  canvas = document.getElementById('gameCanvas');
   console.log('🖼️ Canvas encontrado:', !!canvas, canvas);
   if (!canvas) {
     console.error('❌ Canvas não encontrado!');
@@ -14,7 +14,7 @@ export function initRenderer(){
 }
 
 let resizeTimeout;
-export function resize(){
+function resize(){
   // OTIMIZAÇÃO: Throttling do resize
   if (resizeTimeout) return;
   resizeTimeout = setTimeout(() => {
@@ -98,7 +98,7 @@ function drawTrail(trail, geo){
 
 let lightGradient = null;
 let renderCount = 0;
-export function renderFrame(game){
+function renderFrame(game){
   const {maze, player, minotaur} = game;
   if (!maze || !player || !minotaur) {
     console.log('⚠️ renderFrame: dados faltando', {maze: !!maze, player: !!player, minotaur: !!minotaur});

@@ -1,0 +1,65 @@
+{
+  "project": {
+    "name": "Labirinto de Creta",
+    "version": "2.1.0",
+    "description": "O Desafio do Minotauro - Jogo baseado na mitologia grega",
+    "author": "GitHub Copilot Team",
+    "license": "MIT"
+  },
+  "structure": {
+    "root": "./",
+    "scripts": "./js/",
+    "styles": "./css/",
+    "assets": "./assets/",
+    "docs": "./docs/",
+    "backup": "./backup/",
+    "temp": "./temp/"
+  },
+  "files": {
+    "main": "index.html",
+    "alternative": "index_completo.html",
+    "core_scripts": [
+      "js/game.js",
+      "js/MinotaurAI.js",
+      "js/mazeGenerator.js",
+      "js/renderer.js",
+      "js/estados.js",
+      "js/controles.js"
+    ],
+    "core_styles": [
+      "css/style.css",
+      "css/telas.css"
+    ]
+  },
+  "development": {
+    "server_port": 8080,
+    "hot_reload": false,
+    "debug_mode": true,
+    "performance_monitoring": true
+  },
+  "game_config": {
+    "default_difficulty": "normal",
+    "max_levels": 50,
+    "canvas_size": {
+      "width": 800,
+      "height": 600
+    },
+    "minotaur": {
+      "default_speed": 2200,
+      "chase_speed": 3000,
+      "sight_range": 25,
+      "memory_seconds": 60
+    }
+  },
+  "build": {
+    "minify": false,
+    "optimize_images": true,
+    "bundle_scripts": false,
+    "generate_sourcemap": true
+  },
+  "deploy": {
+    "target": "github_pages",
+    "build_command": "npm run build",
+    "output_dir": "./dist/"
+  }
+}

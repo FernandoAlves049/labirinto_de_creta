@@ -1,6 +1,36 @@
-import { los } from './vision.js';
+// Função de linha de visão (Line of Sight)
+function los(maze, x1, y1, x2, y2) {
+  const dx = Math.abs(x2 - x1);
+  const dy = Math.abs(y2 - y1);
+  const sx = x1 < x2 ? 1 : -1;
+  const sy = y1 < y2 ? 1 : -1;
+  let err = dx - dy;
+  
+  let currentX = Math.floor(x1);
+  let currentY = Math.floor(y1);
+  const targetX = Math.floor(x2);
+  const targetY = Math.floor(y2);
+  
+  while (currentX !== targetX || currentY !== targetY) {
+    if (maze.get(currentX, currentY) === 1) {
+      return false; // Parede bloqueando
+    }
+    
+    const e2 = 2 * err;
+    if (e2 > -dy) {
+      err -= dy;
+      currentX += sx;
+    }
+    if (e2 < dx) {
+      err += dx;
+      currentY += sy;
+    }
+  }
+  
+  return true;
+}
 
-export class Minotaur{
+class Minotaur{
   constructor(cell, maze){
     this.x = cell.x + 0.5;
     this.y = cell.y + 0.5;

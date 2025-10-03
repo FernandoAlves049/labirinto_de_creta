@@ -1,4 +1,4 @@
-export class Player{
+class Player {
   constructor(cell){
     this.x = cell.x + 0.5;
     this.y = cell.y + 0.5;

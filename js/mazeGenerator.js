@@ -1,4 +1,4 @@
-export class Maze{
+class Maze{
   constructor(w,h, seed=12345){
     // Validação de segurança para w e h
     if (!Number.isInteger(w) || w <= 2) {

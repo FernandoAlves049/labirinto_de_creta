@@ -1,64 +1,208 @@
-# Labirinto de Creta (Versão Canvas/ESM)
+# 🏛️ Labirinto de Creta - O Desafio do Minotauro
 
-Projeto de jogo 2D top‑down em HTML5 Canvas com JS (ES Modules). Gera labirintos procedurais, possui campo de visão/iluminação simples, IA do Minotauro com detecção de linha‑de‑visão (LOS) e perseguição, HUD consolidada e controles responsivos.
+## 📋 Descrição
 
-## 🎮 Como jogar
-- **Mover**: WASD ou setas
-- **Fio de Ariadne** (rastro): segure **Espaço**
-- **Pausar**: **Esc** (confirma reinício)
-- **Reiniciar**: **R** (com confirmação)
-- **Objetivo**: sair do labirinto (quadrado verde) sem ser pego pelo Minotauro.
+Uma implementação moderna e imersiva da lenda grega do Labirinto de Creta, onde você controla Teseu em sua missão para escapar do labirinto sem ser capturado pelo Minotauro implacável.
 
-## 🚀 Rodando localmente
-1. Qualquer servidor estático já serve. Exemplos:
-   ```bash
-   # Python 3
-   cd labirinto_de_creta_game_full
-   python -m http.server 8080
-   # Acesse http://localhost:8080
-   ```
-2. Ou use extensões como “Live Server” (VS Code).
+## 🎮 Características
 
-> Importante: usamos **ES Modules**. Abrir `index.html` direto no arquivo (sem servidor) pode falhar por CORS.
+### ✨ Principais Features
+- **🐂 IA Avançada do Minotauro** - Comportamento implacável com perseguição inteligente
+- **🧵 Sistema de Fio de Ariadne** - Marcação de caminhos para navegação
+- **🎯 Sistema de Estados Completo** - Transições suaves entre telas
+- **📊 Estatísticas Detalhadas** - Tempo, eficiência, pontuação
+- **⚙️ Configurações Avançadas** - Dificuldade, áudio, visual
+- **📱 Interface Responsiva** - Design moderno e acessível
 
-## 🧩 Arquitetura
+### 🎯 Modos de Jogo
+- **😊 Fácil** - Minotauro mais lento, ideal para iniciantes
+- **😐 Normal** - Experiência balanceada
+- **😰 Difícil** - Minotauro mais rápido e agressivo  
+- **💀 Pesadelo** - Desafio extremo para veteranos
+
+## 🗂️ Estrutura do Projeto
+
 ```
-/assets
-  /img        (reservado para sprites/fundos futuros)
-  /sfx        (reservado para áudio futuro)
-/docs         (documentação complementar)
-/src
-  main.js                 (loop do jogo e orquestração)
-  /modules
-    renderer.js           (canvas, desenho, iluminação)
-    hud.js                (HUD + modais)
-    input.js              (teclado, pausa, confirmação)
-    mazeGenerator.js      (backtracking + verificação de caminho)
-    player.js             (movimento + rastro do Fio)
-    minotaur.js           (patrulha + perseguição com LOS)
-    vision.js             (linha-de-visão por Bresenham)
-    sprites.js            (loader futuro de sprites)
-index.html
-style.css
-README.md
+labirinto_de_creta/
+├── 📄 index.html              # Arquivo principal
+├── 📄 index_completo.html     # Versão completa alternativa
+├── 📁 js/                     # Scripts JavaScript
+│   ├── 🎮 game.js            # Motor principal do jogo
+│   ├── 🤖 MinotaurAI.js      # IA do Minotauro
+│   ├── 🏗️ mazeGenerator.js   # Gerador de labirintos
+│   ├── 🎨 renderer.js        # Renderização gráfica
+│   ├── 🔄 estados.js         # Gerenciamento de estados
+│   └── 🎛️ controles.js      # Sistema de controles
+├── 📁 css/                    # Folhas de estilo
+│   ├── 🎨 style.css          # Estilos principais
+│   └── 🖼️ telas.css         # Estilos das interfaces
+├── 📁 assets/                 # Recursos gráficos
+│   ├── 📁 img/               # Imagens
+│   └── 📁 sprites/           # Sprites do jogo
+├── 📁 docs/                   # Documentação
+│   ├── 📖 README.md          # Este arquivo
+│   └── 📄 *.pdf             # Documentos do projeto
+├── 📁 backup/                 # Backups e versões antigas
+└── 📁 temp/                   # Arquivos temporários
 ```
 
-## 🧠 Mecânicas
-- **Geração Procedural**: Recursive backtracking sobre grade ímpar; garante caminho viável entre entrada `(1,1)` e saída `(w-2,h-2)` via BFS.
-- **Colisão**: AABB simplificada por eixo; evita “corner cutting”.
-- **Iluminação**: máscara com `destination-out` centrada no jogador.
-- **IA do Minotauro**: dois estados (`PATROL`/`CHASE`); visão por LOS; perseguição levemente mais rápida que o jogador; patrulha com escolha de direção segura e timer.
-- **Escalonamento de nível**: tamanho do labirinto aumenta gradualmente até 41x41.
+## 🚀 Como Executar
 
-## ✅ Qualidade / Sem bugs conhecidos
-- HUD atualizada por **única fonte de verdade** (`hudSet`).
-- Inputs registrados **uma vez**; polling no loop.
-- Timer baseado em `requestAnimationFrame` (`timeMs`), não em `setInterval`.
-- Render em alta resolução com `devicePixelRatio`.
-- Sobreposição de loading escondida no `boot`.
+### 🌐 Servidor Web (Recomendado)
+```bash
+# Navegue até o diretório do projeto
+cd labirinto_de_creta
 
-## 📌 Próximos passos (sugeridos)
-- Sprites reais (player/Minotauro), sons contextuais.
-- Dificuldade adaptativa (campo de visão, velocidade).
-- “Santuários” e “fragmentos de história” como salas especiais.
-- Tela inicial e sistema de save (Firebase) — módulo pronto para integrar.
+# Inicie um servidor HTTP local
+python -m http.server 8000
+
+# Abra no navegador
+http://localhost:8000
+```
+
+### 📁 Arquivo Local
+- Abra `index.html` diretamente no navegador
+- ⚠️ Algumas funcionalidades podem ter limitações
+
+## 🕹️ Controles
+
+| Tecla | Função |
+|-------|--------|
+| `WASD` ou `↑↓←→` | Mover Teseu |
+| `ESPAÇO` | Ativar/Desativar Fio de Ariadne |
+| `ESC` | Pausar/Despausar jogo |
+
+## 🧠 Sistema de IA
+
+### 🐂 Estados do Minotauro
+- **🟢 PATRULHANDO** - Movimento lento, procurando pelo jogador
+- **🟡 INVESTIGANDO** - Ouviu ruído, movimento mais rápido
+- **🔴 PERSEGUINDO** - Viu o jogador, perseguição implacável!
+
+### ⚡ Características da IA
+- **Visão Limitada** mas persistente
+- **Pathfinding A*** para navegação inteligente
+- **Sistema de Memória** lembra da última posição vista
+- **Comportamento Emergente** baseado em estímulos
+
+## 🎯 Sistema de Pontuação
+
+### 📊 Métricas Calculadas
+- **⏱️ Tempo** - Rapidez na conclusão
+- **📏 Eficiência** - Otimalidade do caminho
+- **🧵 Uso do Fio** - Estratégia de navegação
+- **🎚️ Dificuldade** - Multiplicador de pontos
+
+### 🏆 Ranking
+- **S** - Desempenho excepcional (90-100%)
+- **A** - Muito bom (80-89%)
+- **B** - Bom (70-79%)
+- **C** - Regular (60-69%)
+- **D** - Precisa melhorar (<60%)
+
+## 🔧 Configurações Técnicas
+
+### 🎮 Jogabilidade
+- **Dificuldade** - 4 níveis disponíveis
+- **Semente** - Mapas determinísticos ou aleatórios
+- **Controles** - Personalizáveis
+
+### 🔊 Áudio
+- **Volume Geral** - Controle deslizante
+- **Efeitos Sonoros** - Sons de passos, Minotauro
+- **Música** - Trilha ambiente (planejado)
+
+### 🎨 Visual
+- **Qualidade Gráfica** - Baixa/Média/Alta
+- **Animações** - Suaves ou simplificadas
+- **Efeitos** - Sombras, partículas
+
+## 🛠️ Desenvolvimento
+
+### 🏗️ Arquitetura
+- **Modular** - Componentes independentes
+- **Escalável** - Fácil adição de features
+- **Performático** - Otimizado para web
+
+### 🧪 Tecnologias
+- **JavaScript ES6+** - Lógica principal
+- **HTML5 Canvas** - Renderização gráfica
+- **CSS3** - Interface e animações
+- **Web APIs** - Audio, Storage, etc.
+
+### 📈 Performance
+- **60 FPS** - Renderização suave
+- **Baixa Latência** - Controles responsivos
+- **Memória Otimizada** - Garbage collection eficiente
+
+## 🐛 Solução de Problemas
+
+### ❌ Problemas Comuns
+
+**🖼️ Jogo não carrega:**
+- Verifique se todos os arquivos estão na estrutura correta
+- Use um servidor HTTP local
+- Verifique o console do navegador para erros
+
+**🎮 Controles não funcionam:**
+- Certifique-se que o jogo está em foco
+- Recarregue a página
+- Verifique as configurações de controles
+
+**🐌 Performance baixa:**
+- Reduza a qualidade gráfica nas configurações
+- Feche outras abas do navegador
+- Desative animações se necessário
+
+## 📋 TODO / Roadmap
+
+### 🎯 Próximas Features
+- [ ] 🔊 Sistema de áudio completo
+- [ ] 🗺️ Minimap opcional
+- [ ] 💾 Sistema de save/load
+- [ ] 🏆 Tabela de recordes online
+- [ ] 🎨 Temas visuais alternativos
+- [ ] 📱 Controles touch para mobile
+- [ ] 🌐 Multiplayer cooperativo
+
+### 🔧 Melhorias Técnicas
+- [ ] ⚡ Web Workers para IA
+- [ ] 🎮 Suporte a gamepad
+- [ ] 📊 Analytics detalhados
+- [ ] 🔄 Auto-save progresso
+- [ ] 🎨 Shaders customizados
+
+## 🤝 Contribuição
+
+Contribuições são bem-vindas! Por favor:
+
+1. 🍴 Fork o projeto
+2. 🌟 Crie uma branch para sua feature
+3. 💻 Implemente suas mudanças
+4. ✅ Teste thoroughly
+5. 📤 Faça um Pull Request
+
+## 📄 Licença
+
+Este projeto é open source e está disponível sob a licença MIT.
+
+## 👥 Créditos
+
+- **🎮 Desenvolvimento**: GitHub Copilot & Assistant
+- **🎨 Design**: Interface moderna responsiva
+- **🏛️ Inspiração**: Mitologia grega clássica
+- **🔧 Tecnologia**: JavaScript vanilla + Canvas API
+
+---
+
+## 🏆 Estatísticas do Projeto
+
+- **📁 Arquivos**: ~15 arquivos organizados
+- **💾 Tamanho**: ~500KB total
+- **⚡ Performance**: 60fps target
+- **🌐 Compatibilidade**: Navegadores modernos
+- **📱 Responsivo**: Desktop/Tablet/Mobile
+
+---
+
+**🏛️ "Entre na lenda. Escape do labirinto. Derrote o Minotauro." 🏛️**
