@@ -432,7 +432,7 @@
         /* Tela de Jogo */
         .game-hud {
             position: fixed;
-            top: -150px;
+            top: 0;
             left: 0;
             width: 100%;
             background: linear-gradient(180deg, 
@@ -441,18 +441,18 @@
                 transparent 100%
             );
             backdrop-filter: blur(20px);
-            padding: 1.5rem;
+            padding: 1rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             z-index: 10;
             border-bottom: 2px solid rgba(255, 215, 0, 0.3);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            transition: top 0.5s ease-in-out;
+            transition: all 0.3s ease;
         }
         
         .game-hud.show {
-            top: 0;
+            opacity: 1;
         }
 
         .hud-left, .hud-right {
@@ -670,6 +670,45 @@
                 text-shadow: 0 6px 25px rgba(255, 215, 0, 0.9);
                 transform: scale(1.02);
             }
+        }
+
+        /* Efeito de Transição de Nível */
+        .level-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, 
+                rgba(0, 0, 0, 0) 0%, 
+                rgba(0, 0, 0, 0.5) 50%, 
+                rgba(0, 0, 0, 1) 100%);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 1.5s ease-in-out;
+        }
+
+        .level-transition.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .transition-text {
+            color: #ffd700;
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            animation: fadeInOut 2s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.1); }
         }
 
         .modal-content {
@@ -973,7 +1012,7 @@
                 </button>
             </div>
             <div class="menu-footer">
-                <p class="controls-hint">🎮 WASD para mover • SPACE para Fio de Ariadne</p>
+                <p class="controls-hint">🎮 WASD para mover • SPACE para Fio • SHIFT para correr</p>
                 <p class="version-info">v2.1.0 • HTML5 Game</p>
             </div>
         </div>
@@ -1003,6 +1042,10 @@
                 <div class="hud-item">
                     <span class="hud-label">Minotauro:</span>
                     <span class="hud-value" id="hud-minotaur">PATRULHA</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Corrida:</span>
+                    <span class="hud-value" id="hud-running">🚶</span>
                 </div>
             </div>
         </div>
@@ -1053,6 +1096,13 @@
         </div>
     </div>
 
+    <!-- Overlay de Transição de Nível -->
+    <div id="level-transition" class="level-transition">
+        <div class="transition-text" id="transition-text">
+            🏛️ Entrando no Próximo Nível...
+        </div>
+    </div>
+
     <script>
         // JOGO LABIRINTO DE CRETA - VERSÃO SIMPLIFICADA
         class LabirintoDeCreta {
@@ -1068,14 +1118,463 @@
                 this.minotaur = { x: 1.5, y: 1.5, state: 'PATROL', vx: 0, vy: 0, lastDir: 0 };
                 this.keys = new Set();
                 this.threadActive = false;
+                this.isRunning = false; // Estado de corrida
+                this.isTransitioning = false; // Estado de transição entre níveis
                 this.cellSize = 30;
+                
+                // 🎵 SISTEMA DE ÁUDIO COMPLETO
+                this.audioContext = null;
+                this.sounds = {};
+                this.musicVolume = 0.3;
+                this.sfxVolume = 0.5;
+                this.currentMusic = null;
+                this.audioInitialized = false;
                 this.lastTime = 0;
                 this.gameLoop = null;
             }
 
             init() {
                 this.setupEventListeners();
+                this.initAudio();
                 this.showLoadingProgress();
+            }
+
+            // 🎵 SISTEMA DE ÁUDIO COMPLETO
+            async initAudio() {
+                console.log('🎵 Inicializando sistema de áudio...');
+                
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    // Criar todas as trilhas e efeitos sonoros
+                    await this.createSounds();
+                    
+                    this.audioInitialized = true;
+                    console.log('✅ Sistema de áudio inicializado!');
+                    
+                } catch (error) {
+                    console.warn('⚠️ Áudio não disponível:', error);
+                }
+            }
+
+            async createSounds() {
+                // 🎵 TRILHAS SONORAS PROCEDURAIS
+                this.sounds = {
+                    // Músicas de fundo
+                    menuMusic: this.createAmbientMusic(220, 'menu'), // Lá menor - misterioso
+                    gameMusic: this.createAmbientMusic(174, 'game'), // Fá menor - tensão
+                    chaseMusic: this.createAmbientMusic(196, 'chase'), // Sol menor - perseguição
+                    victoryMusic: this.createAmbientMusic(261, 'victory'), // Dó maior - vitória
+                    
+                    // Efeitos sonoros
+                    footstep: this.createFootstepSound(),
+                    runFootstep: this.createRunFootstepSound(),
+                    minotaurRoar: this.createMinotaurRoar(),
+                    threadActivate: this.createThreadSound(),
+                    portalEnter: this.createPortalSound(),
+                    levelComplete: this.createLevelCompleteSound(),
+                    gameOver: this.createGameOverSound(),
+                    buttonClick: this.createButtonClickSound(),
+                    minotaurAttack: this.createMinotaurAttackSound(),
+                    heartbeat: this.createHeartbeatSound()
+                };
+                
+                console.log('🎵 Todas as trilhas e efeitos criados!');
+            }
+
+            createAmbientMusic(baseFreq, type) {
+                if (!this.audioContext) return null;
+                
+                const music = {
+                    oscillators: [],
+                    gainNodes: [],
+                    isPlaying: false,
+                    type: type
+                };
+                
+                // Criar música ambiente baseada no tipo
+                const chords = this.getMusicChords(type);
+                
+                chords.forEach((freq, index) => {
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    const filterNode = this.audioContext.createBiquadFilter();
+                    
+                    oscillator.type = index % 2 === 0 ? 'sine' : 'triangle';
+                    oscillator.frequency.setValueAtTime(freq, this.audioContext.currentTime);
+                    
+                    filterNode.type = 'lowpass';
+                    filterNode.frequency.setValueAtTime(800, this.audioContext.currentTime);
+                    
+                    gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+                    
+                    oscillator.connect(filterNode);
+                    filterNode.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    
+                    music.oscillators.push(oscillator);
+                    music.gainNodes.push(gainNode);
+                });
+                
+                return music;
+            }
+
+            getMusicChords(type) {
+                switch(type) {
+                    case 'menu':
+                        return [220, 261, 329, 392]; // Lá menor - ambiente misterioso
+                    case 'game':
+                        return [174, 207, 261, 311]; // Fá menor - tensão constante
+                    case 'chase':
+                        return [196, 233, 294, 349]; // Sol menor - perseguição intensa
+                    case 'victory':
+                        return [261, 329, 392, 523]; // Dó maior - vitória gloriosa
+                    default:
+                        return [220, 261, 329, 392];
+                }
+            }
+
+            createFootstepSound() {
+                return () => {
+                    if (!this.audioContext) return;
+                    
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    const filterNode = this.audioContext.createBiquadFilter();
+                    
+                    oscillator.type = 'sawtooth';
+                    oscillator.frequency.setValueAtTime(80, this.audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(40, this.audioContext.currentTime + 0.1);
+                    
+                    filterNode.type = 'lowpass';
+                    filterNode.frequency.setValueAtTime(200, this.audioContext.currentTime);
+                    
+                    gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(this.sfxVolume * 0.2, this.audioContext.currentTime + 0.01);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.1);
+                    
+                    oscillator.connect(filterNode);
+                    filterNode.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + 0.1);
+                };
+            }
+
+            createRunFootstepSound() {
+                return () => {
+                    if (!this.audioContext) return;
+                    
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    
+                    oscillator.type = 'square';
+                    oscillator.frequency.setValueAtTime(120, this.audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(60, this.audioContext.currentTime + 0.05);
+                    
+                    gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(this.sfxVolume * 0.3, this.audioContext.currentTime + 0.01);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.05);
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + 0.05);
+                };
+            }
+
+            createMinotaurRoar() {
+                return () => {
+                    if (!this.audioContext) return;
+                    
+                    const oscillator1 = this.audioContext.createOscillator();
+                    const oscillator2 = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    const filterNode = this.audioContext.createBiquadFilter();
+                    
+                    oscillator1.type = 'sawtooth';
+                    oscillator1.frequency.setValueAtTime(50, this.audioContext.currentTime);
+                    oscillator1.frequency.exponentialRampToValueAtTime(30, this.audioContext.currentTime + 0.5);
+                    
+                    oscillator2.type = 'square';
+                    oscillator2.frequency.setValueAtTime(75, this.audioContext.currentTime);
+                    oscillator2.frequency.exponentialRampToValueAtTime(45, this.audioContext.currentTime + 0.5);
+                    
+                    filterNode.type = 'lowpass';
+                    filterNode.frequency.setValueAtTime(300, this.audioContext.currentTime);
+                    
+                    gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(this.sfxVolume * 0.6, this.audioContext.currentTime + 0.1);
+                    gainNode.gain.linearRampToValueAtTime(this.sfxVolume * 0.4, this.audioContext.currentTime + 0.3);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.5);
+                    
+                    oscillator1.connect(filterNode);
+                    oscillator2.connect(filterNode);
+                    filterNode.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    
+                    oscillator1.start(this.audioContext.currentTime);
+                    oscillator2.start(this.audioContext.currentTime);
+                    oscillator1.stop(this.audioContext.currentTime + 0.5);
+                    oscillator2.stop(this.audioContext.currentTime + 0.5);
+                };
+            }
+
+            createThreadSound() {
+                return () => {
+                    if (!this.audioContext) return;
+                    
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(440, this.audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(880, this.audioContext.currentTime + 0.2);
+                    
+                    gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(this.sfxVolume * 0.3, this.audioContext.currentTime + 0.05);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.2);
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + 0.2);
+                };
+            }
+
+            createPortalSound() {
+                return () => {
+                    if (!this.audioContext) return;
+                    
+                    for (let i = 0; i < 5; i++) {
+                        setTimeout(() => {
+                            const oscillator = this.audioContext.createOscillator();
+                            const gainNode = this.audioContext.createGain();
+                            
+                            oscillator.type = 'sine';
+                            oscillator.frequency.setValueAtTime(200 + i * 100, this.audioContext.currentTime);
+                            
+                            gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+                            gainNode.gain.linearRampToValueAtTime(this.sfxVolume * 0.2, this.audioContext.currentTime + 0.1);
+                            gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.3);
+                            
+                            oscillator.connect(gainNode);
+                            gainNode.connect(this.audioContext.destination);
+                            
+                            oscillator.start(this.audioContext.currentTime);
+                            oscillator.stop(this.audioContext.currentTime + 0.3);
+                        }, i * 50);
+                    }
+                };
+            }
+
+            createLevelCompleteSound() {
+                return () => {
+                    if (!this.audioContext) return;
+                    
+                    const frequencies = [261, 329, 392, 523]; // Acorde de Dó maior
+                    frequencies.forEach((freq, index) => {
+                        setTimeout(() => {
+                            const oscillator = this.audioContext.createOscillator();
+                            const gainNode = this.audioContext.createGain();
+                            
+                            oscillator.type = 'triangle';
+                            oscillator.frequency.setValueAtTime(freq, this.audioContext.currentTime);
+                            
+                            gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+                            gainNode.gain.linearRampToValueAtTime(this.sfxVolume * 0.4, this.audioContext.currentTime + 0.1);
+                            gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 1);
+                            
+                            oscillator.connect(gainNode);
+                            gainNode.connect(this.audioContext.destination);
+                            
+                            oscillator.start(this.audioContext.currentTime);
+                            oscillator.stop(this.audioContext.currentTime + 1);
+                        }, index * 100);
+                    });
+                };
+            }
+
+            createGameOverSound() {
+                return () => {
+                    if (!this.audioContext) return;
+                    
+                    const frequencies = [220, 207, 196, 174]; // Descida triste
+                    frequencies.forEach((freq, index) => {
+                        setTimeout(() => {
+                            const oscillator = this.audioContext.createOscillator();
+                            const gainNode = this.audioContext.createGain();
+                            
+                            oscillator.type = 'sawtooth';
+                            oscillator.frequency.setValueAtTime(freq, this.audioContext.currentTime);
+                            
+                            gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+                            gainNode.gain.linearRampToValueAtTime(this.sfxVolume * 0.3, this.audioContext.currentTime + 0.2);
+                            gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.8);
+                            
+                            oscillator.connect(gainNode);
+                            gainNode.connect(this.audioContext.destination);
+                            
+                            oscillator.start(this.audioContext.currentTime);
+                            oscillator.stop(this.audioContext.currentTime + 0.8);
+                        }, index * 200);
+                    });
+                };
+            }
+
+            createButtonClickSound() {
+                return () => {
+                    if (!this.audioContext) return;
+                    
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    
+                    oscillator.type = 'square';
+                    oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(400, this.audioContext.currentTime + 0.1);
+                    
+                    gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(this.sfxVolume * 0.2, this.audioContext.currentTime + 0.01);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.1);
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + 0.1);
+                };
+            }
+
+            createMinotaurAttackSound() {
+                return () => {
+                    if (!this.audioContext) return;
+                    
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    const filterNode = this.audioContext.createBiquadFilter();
+                    
+                    oscillator.type = 'sawtooth';
+                    oscillator.frequency.setValueAtTime(100, this.audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(200, this.audioContext.currentTime + 0.1);
+                    oscillator.frequency.exponentialRampToValueAtTime(50, this.audioContext.currentTime + 0.3);
+                    
+                    filterNode.type = 'lowpass';
+                    filterNode.frequency.setValueAtTime(500, this.audioContext.currentTime);
+                    
+                    gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(this.sfxVolume * 0.7, this.audioContext.currentTime + 0.05);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.3);
+                    
+                    oscillator.connect(filterNode);
+                    filterNode.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + 0.3);
+                };
+            }
+
+            createHeartbeatSound() {
+                return () => {
+                    if (!this.audioContext) return;
+                    
+                    // Batida dupla do coração
+                    for (let i = 0; i < 2; i++) {
+                        setTimeout(() => {
+                            const oscillator = this.audioContext.createOscillator();
+                            const gainNode = this.audioContext.createGain();
+                            
+                            oscillator.type = 'sine';
+                            oscillator.frequency.setValueAtTime(60, this.audioContext.currentTime);
+                            
+                            gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+                            gainNode.gain.linearRampToValueAtTime(this.sfxVolume * 0.4, this.audioContext.currentTime + 0.05);
+                            gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.2);
+                            
+                            oscillator.connect(gainNode);
+                            gainNode.connect(this.audioContext.destination);
+                            
+                            oscillator.start(this.audioContext.currentTime);
+                            oscillator.stop(this.audioContext.currentTime + 0.2);
+                        }, i * 150);
+                    }
+                };
+            }
+
+            // 🎵 CONTROLE DE MÚSICA
+            playMusic(musicName) {
+                if (!this.audioInitialized || !this.sounds[musicName]) return;
+                
+                // Parar música atual
+                this.stopCurrentMusic();
+                
+                const music = this.sounds[musicName];
+                
+                try {
+                    music.oscillators.forEach((osc, index) => {
+                        osc.start(this.audioContext.currentTime);
+                        
+                        // Fade in gradual
+                        const gain = music.gainNodes[index];
+                        gain.gain.setValueAtTime(0, this.audioContext.currentTime);
+                        gain.gain.linearRampToValueAtTime(this.musicVolume * 0.1, this.audioContext.currentTime + 2);
+                        
+                        // Variações sutis na frequência
+                        setInterval(() => {
+                            if (music.isPlaying) {
+                                const variation = 0.98 + Math.random() * 0.04; // ±2% de variação
+                                osc.frequency.setValueAtTime(
+                                    osc.frequency.value * variation, 
+                                    this.audioContext.currentTime
+                                );
+                            }
+                        }, 2000 + Math.random() * 2000);
+                    });
+                    
+                    music.isPlaying = true;
+                    this.currentMusic = music;
+                    
+                    console.log(`🎵 Tocando música: ${musicName}`);
+                    
+                } catch (error) {
+                    console.warn('⚠️ Erro ao tocar música:', error);
+                }
+            }
+
+            stopCurrentMusic() {
+                if (this.currentMusic && this.currentMusic.isPlaying) {
+                    try {
+                        this.currentMusic.gainNodes.forEach(gain => {
+                            gain.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + 1);
+                        });
+                        
+                        setTimeout(() => {
+                            if (this.currentMusic) {
+                                this.currentMusic.oscillators.forEach(osc => {
+                                    try { osc.stop(); } catch(e) {}
+                                });
+                                this.currentMusic.isPlaying = false;
+                            }
+                        }, 1000);
+                        
+                    } catch (error) {
+                        console.warn('⚠️ Erro ao parar música:', error);
+                    }
+                }
+            }
+
+            // 🔊 TOCAR EFEITOS SONOROS
+            playSound(soundName) {
+                if (!this.audioInitialized || !this.sounds[soundName]) return;
+                
+                try {
+                    this.sounds[soundName]();
+                } catch (error) {
+                    console.warn(`⚠️ Erro ao tocar som ${soundName}:`, error);
+                }
             }
 
             showLoadingProgress() {
@@ -1084,7 +1583,7 @@
                     'Carregando recursos...',
                     'Configurando labirinto...',
                     'Preparando Minotauro...',
-                    'Afiando espada de Teseu...',
+                    'Inicializando áudio... 🎵',
                     'Pronto para a aventura!'
                 ];
 
@@ -1093,9 +1592,18 @@
                     document.getElementById('loading-progress').style.width = `${progress}%`;
                     document.getElementById('loading-text').textContent = messages[Math.floor(progress / 20) - 1] || messages[0];
 
+                    // 🎵 Testar áudio na última etapa
+                    if (progress === 80 && this.audioInitialized) {
+                        this.playSound('buttonClick');
+                        console.log('🎵 Áudio testado com sucesso!');
+                    }
+
                     if (progress >= 100) {
                         clearInterval(interval);
-                        setTimeout(() => this.showScreen('menu'), 1000);
+                        setTimeout(() => {
+                            this.showScreen('menu');
+                            this.playMusic('menuMusic'); // 🎵 Música do menu
+                        }, 1000);
                     }
                 }, 500);
             }
@@ -1148,30 +1656,37 @@
                 });
 
                 document.getElementById('btn-settings').addEventListener('click', () => {
+                    this.playSound('buttonClick'); // 🔊 Som de clique
                     this.showSettings();
                 });
 
                 // Game over buttons
                 document.getElementById('btn-retry').addEventListener('click', () => {
+                    this.playSound('buttonClick'); // 🔊 Som de clique
                     this.hideOverlay('gameover');
                     this.restartLevel();
                 });
 
                 document.getElementById('btn-menu-from-gameover').addEventListener('click', () => {
+                    this.playSound('buttonClick'); // 🔊 Som de clique
                     this.hideOverlay('gameover');
                     this.showScreen('menu');
+                    this.playMusic('menuMusic'); // 🎵 Música do menu
                     this.stopGame();
                 });
 
                 // Victory buttons
                 document.getElementById('btn-next-level').addEventListener('click', () => {
+                    this.playSound('buttonClick'); // 🔊 Som de clique
                     this.hideOverlay('victory');
-                    this.nextLevel();
+                    this.startLevelTransition();
                 });
 
                 document.getElementById('btn-menu-from-victory').addEventListener('click', () => {
+                    this.playSound('buttonClick'); // 🔊 Som de clique
                     this.hideOverlay('victory');
                     this.showScreen('menu');
+                    this.playMusic('menuMusic'); // 🎵 Música do menu
                     this.stopGame();
                 });
 
@@ -1193,39 +1708,75 @@
                 this.canvas = document.getElementById('game-canvas');
                 this.ctx = this.canvas.getContext('2d');
                 
-                // Ajustar canvas para responsividade
+                // Canvas inicial pequeno - vai crescer com os níveis
+                this.canvas.width = 600;
+                this.canvas.height = 450;
+                this.canvas.style.width = '600px';
+                this.canvas.style.height = '450px';
+                
+                console.log('🎮 Canvas inicializado: 600x450px (cresce com níveis)');
+                
+                // Ajustar canvas para responsividade apenas
                 this.resizeCanvas();
                 window.addEventListener('resize', () => this.resizeCanvas());
+                
+                // Forçar HUD aparecer
+                const hud = document.querySelector('.game-hud');
+                if (hud) {
+                    hud.style.display = 'flex';
+                    console.log('🗺️ HUD inicializado!');
+                }
             }
 
             resizeCanvas() {
+                // 🗺️ RESIZE BÁSICO - O TAMANHO DINÂMICO É CONTROLADO PELO NÍVEL
                 const container = this.canvas.parentElement;
-                const maxWidth = container.clientWidth - 40;
-                const maxHeight = container.clientHeight - 40;
                 
-                const aspectRatio = 800 / 600;
-                let width = maxWidth;
-                let height = width / aspectRatio;
+                // Apenas garantir que não ultrapasse o container
+                const maxWidth = container.clientWidth - 20;
+                const maxHeight = container.clientHeight - 80; // Espaço para HUD
                 
-                if (height > maxHeight) {
-                    height = maxHeight;
-                    width = height * aspectRatio;
+                // Se o canvas atual for maior que o container, redimensionar proporcionalmente
+                if (this.canvas.width > maxWidth || this.canvas.height > maxHeight) {
+                    const scaleX = maxWidth / this.canvas.width;
+                    const scaleY = maxHeight / this.canvas.height;
+                    const scale = Math.min(scaleX, scaleY, 1); // Não aumentar, apenas diminuir
+                    
+                    this.canvas.style.width = `${this.canvas.width * scale}px`;
+                    this.canvas.style.height = `${this.canvas.height * scale}px`;
+                    
+                    console.log(`🗺️ Canvas redimensionado para caber: Scale ${scale.toFixed(2)}x`);
                 }
                 
-                this.canvas.style.width = `${width}px`;
-                this.canvas.style.height = `${height}px`;
+                // Não regenerar labirinto no resize - apenas no generateMaze()
             }
 
             startNewGame() {
+                this.playSound('buttonClick'); // 🔊 Som de clique
                 this.level = 1;
                 this.showScreen('game');
+                this.playMusic('gameMusic'); // 🎵 Música de jogo
                 this.startLevel();
             }
 
             startLevel() {
+                console.log(`🎮🏰 INICIANDO NÍVEL ${this.level} - PREPARA-SE PARA O MINOTAURO!`);
+                
                 this.generateMaze();
                 this.resetPlayer();
+                
+                // 🐂 GARANTIR QUE O BOSS SEMPRE APAREÇA
+                console.log('🔥 Invocando o Minotauro...');
                 this.resetMinotaur();
+                
+                // Verificação de segurança
+                if (!this.minotaur.x || !this.minotaur.y) {
+                    console.error('⚠️ ERRO: Minotauro não foi posicionado! Corrigindo...');
+                    this.minotaur.x = Math.max(2.5, this.maze.width - 3);
+                    this.minotaur.y = Math.max(2.5, this.maze.height - 3);
+                    this.minotaur.state = 'HUNT';
+                }
+                
                 this.startTime = Date.now();
                 this.gameTime = 0;
                 this.gameState = 'playing';
@@ -1235,34 +1786,110 @@
                 }
                 this.gameLoop = requestAnimationFrame((time) => this.update(time));
                 
-                console.log(`🎮 Nível ${this.level} iniciado!`);
+                // 🗺️ GARANTIR QUE O HUD APAREÇA
+                const hud = document.querySelector('.game-hud');
+                if (hud) {
+                    hud.classList.add('show');
+                    hud.style.display = 'flex';
+                    console.log('🗺️ HUD ativado!');
+                }
+                
+                console.log(`✅ Nível ${this.level} iniciado com BOSS ativo em (${this.minotaur.x.toFixed(1)}, ${this.minotaur.y.toFixed(1)})!`);
+                console.log(`🏹 Teseu vs Minotauro - QUE COMECE A CAÇADA!`);
+                console.log(`🔥 Canvas dinâmico: ${this.canvas.width}x${this.canvas.height}px - CellSize: ${this.cellSize.toFixed(1)}px`);
             }
 
             generateMaze() {
-                const size = Math.min(15 + (this.level - 1) * 2, 25);
+                // 🏛️ CANVAS DINÂMICO BASEADO NO NÍVEL! 😂
+                
+                // Tamanho da célula diminui conforme avança nos níveis (mais difícil)
+                const baseCellSize = 20; // Começa com células grandes
+                const cellSizeReduction = Math.min(8, this.level * 0.5); // Reduz gradualmente
+                const targetCellSize = Math.max(8, baseCellSize - cellSizeReduction);
+                
+                console.log(`🎮 Nível ${this.level}: CellSize = ${targetCellSize}px (Base: ${baseCellSize}, Redução: ${cellSizeReduction})`);
+                
+                // Tamanho do canvas cresce com o nível
+                const levelMultiplier = 1 + (this.level - 1) * 0.1; // Cresce 10% por nível
+                const baseCanvasWidth = 600;
+                const baseCanvasHeight = 450;
+                
+                const canvasWidth = Math.min(1000, baseCanvasWidth * levelMultiplier); // Máx 1000px
+                const canvasHeight = Math.min(750, baseCanvasHeight * levelMultiplier); // Máx 750px
+                
+                // Atualizar tamanho do canvas
+                this.canvas.width = canvasWidth;
+                this.canvas.height = canvasHeight;
+                this.canvas.style.width = `${canvasWidth}px`;
+                this.canvas.style.height = `${canvasHeight}px`;
+                
+                console.log(`🗺️ Canvas Nivel ${this.level}: ${canvasWidth}x${canvasHeight}px (Mult: ${levelMultiplier.toFixed(1)}x)`);
+                
+                // Calcular dimensões do labirinto
+                const width = Math.floor(canvasWidth / targetCellSize);
+                const height = Math.floor(canvasHeight / targetCellSize);
+                
+                // Garantir que seja ímpar para algoritmo de labirinto
+                const mazeWidth = width % 2 === 0 ? width - 1 : width;
+                const mazeHeight = height % 2 === 0 ? height - 1 : height;
+                
+                console.log(`🏛️ Gerando labirinto: ${mazeWidth}x${mazeHeight} (Canvas: ${canvasWidth}x${canvasHeight})`);
+                
                 this.maze = {
-                    width: size,
-                    height: size,
+                    width: mazeWidth,
+                    height: mazeHeight,
                     walls: []
                 };
 
                 // Initialize maze with walls
-                for (let y = 0; y < size; y++) {
+                for (let y = 0; y < mazeHeight; y++) {
                     this.maze.walls[y] = [];
-                    for (let x = 0; x < size; x++) {
+                    for (let x = 0; x < mazeWidth; x++) {
                         this.maze.walls[y][x] = 1;
                     }
                 }
 
-                // Create paths using simple algorithm
+                // Create paths using recursive backtracking
                 this.carveMaze(1, 1);
                 
-                // Ensure start and end are clear
+                // Garantir que início e fim estejam livres
                 this.maze.walls[1][1] = 0;
-                this.maze.walls[size - 2][size - 2] = 0;
+                this.maze.walls[mazeHeight - 2][mazeWidth - 2] = 0;
                 
-                // Calculate cell size
-                this.cellSize = Math.min(this.canvas.width / size, this.canvas.height / size);
+                // Criar mais caminhos para o Minotauro se mover
+                this.createAdditionalPaths();
+                
+                // Calcular tamanho da célula para renderização
+                this.cellSize = Math.min(canvasWidth / mazeWidth, canvasHeight / mazeHeight);
+                
+                console.log(`✅ Labirinto gerado! CellSize: ${this.cellSize.toFixed(1)}px`);
+            }
+
+            createAdditionalPaths() {
+                // Criar caminhos adicionais para melhor movimentação do Minotauro
+                const pathsToCreate = Math.floor(this.maze.width * this.maze.height * 0.05); // 5% de caminhos extras
+                
+                for (let i = 0; i < pathsToCreate; i++) {
+                    const x = 1 + Math.floor(Math.random() * (this.maze.width - 2));
+                    const y = 1 + Math.floor(Math.random() * (this.maze.height - 2));
+                    
+                    // Criar pequenos caminhos extras
+                    if (this.maze.walls[y] && this.maze.walls[y][x]) {
+                        this.maze.walls[y][x] = 0;
+                        
+                        // Conectar com caminhos vizinhos se possível
+                        const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+                        for (const [dx, dy] of directions) {
+                            const nx = x + dx;
+                            const ny = y + dy;
+                            if (nx > 0 && nx < this.maze.width - 1 && ny > 0 && ny < this.maze.height - 1) {
+                                if (Math.random() < 0.3 && this.maze.walls[ny] && this.maze.walls[ny][nx]) {
+                                    this.maze.walls[ny][nx] = 0;
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             carveMaze(x, y) {
@@ -1292,37 +1919,106 @@
             }
 
             resetMinotaur() {
-                // Posição simples e garantida para o minotauro
-                this.minotaur.x = this.maze.width - 2.5;
-                this.minotaur.y = this.maze.height - 2.5;
+                console.log('🐂 INVOCANDO O BOSS CHEFEÃO LENDÁRIO - MINOTAURO!');
                 
-                // Se a posição estiver em uma parede, mover para uma posição livre próxima
-                if (this.isWall(this.minotaur.x, this.minotaur.y)) {
-                    // Tentar posições próximas
-                    for (let dx = -1; dx <= 1; dx++) {
-                        for (let dy = -1; dy <= 1; dy++) {
-                            const testX = this.minotaur.x + dx;
-                            const testY = this.minotaur.y + dy;
+                // 💪 GARANTIR QUE O MINOTAURO SEMPRE APAREÇA - ELE É O BOSS!
+                let found = false;
+                let attempts = 0;
+                
+                // Posições estratégicas para o boss chefeão
+                const bossPositions = [
+                    // Cantos do labirinto - posições de poder
+                    { x: this.maze.width - 2.5, y: this.maze.height - 2.5, name: 'Canto do Poder' },
+                    { x: this.maze.width - 3.5, y: this.maze.height - 2.5, name: 'Guardião da Saída' },
+                    { x: this.maze.width - 2.5, y: this.maze.height - 3.5, name: 'Protetor do Portal' },
+                    
+                    // Centro do labirinto - domínio absoluto
+                    { x: this.maze.width / 2, y: this.maze.height / 2, name: 'Senhor do Centro' },
+                    { x: (this.maze.width / 2) + 1, y: this.maze.height / 2, name: 'Dominador Central' },
+                    { x: this.maze.width / 2, y: (this.maze.height / 2) + 1, name: 'Mestre Central' },
+                    
+                    // Posições intermediárias - caçador
+                    { x: this.maze.width * 0.75, y: this.maze.height * 0.75, name: 'Caçador das Sombras' },
+                    { x: this.maze.width * 0.25, y: this.maze.height * 0.75, name: 'Perseguidor Implacavel' },
+                    { x: this.maze.width * 0.75, y: this.maze.height * 0.25, name: 'Vigia dos Corredores' },
+                    
+                    // Posições de emergência
+                    { x: 3.5, y: 3.5, name: 'Predador Inicial' },
+                    { x: 4.5, y: 4.5, name: 'Bestia Despertada' },
+                    { x: 2.5, y: 3.5, name: 'Terror Primitivo' }
+                ];
+                
+                // Testar cada posição do boss
+                for (const pos of bossPositions) {
+                    attempts++;
+                    if (!this.isWall(pos.x, pos.y) && 
+                        pos.x > 0 && pos.x < this.maze.width && 
+                        pos.y > 0 && pos.y < this.maze.height) {
+                        this.minotaur.x = pos.x;
+                        this.minotaur.y = pos.y;
+                        console.log(`💪 BOSS POSICIONADO: ${pos.name} em (${pos.x.toFixed(1)}, ${pos.y.toFixed(1)})`);
+                        found = true;
+                        break;
+                    }
+                }
+                
+                // SISTEMA DE EMERGÊNCIA - O BOSS SEMPRE DEVE APARECER!
+                if (!found) {
+                    console.warn('⚠️ ATIVAÇÃO DE EMERGÊNCIA - FORÇANDO SPAWN DO BOSS!');
+                    
+                    // Varredura completa garantindo que o boss apareça
+                    outerLoop: for (let y = 2; y < this.maze.height - 1; y += 2) {
+                        for (let x = 2; x < this.maze.width - 1; x += 2) {
+                            attempts++;
+                            const testX = x + 0.5;
+                            const testY = y + 0.5;
+                            
                             if (!this.isWall(testX, testY)) {
                                 this.minotaur.x = testX;
                                 this.minotaur.y = testY;
-                                break;
+                                console.log(`🎆 BOSS EMERGENCIAL SPAWNED em (${testX.toFixed(1)}, ${testY.toFixed(1)})`);
+                                found = true;
+                                break outerLoop;
+                            }
+                            
+                            // Limite de segurança
+                            if (attempts > 100) {
+                                // ÚLTIMO RECURSO - Forçar posição
+                                this.minotaur.x = Math.max(2.5, Math.min(this.maze.width - 2.5, this.maze.width / 2));
+                                this.minotaur.y = Math.max(2.5, Math.min(this.maze.height - 2.5, this.maze.height / 2));
+                                console.warn(`🔥 FORÇANDO POSIÇÃO DO BOSS: (${this.minotaur.x.toFixed(1)}, ${this.minotaur.y.toFixed(1)})`);
+                                found = true;
+                                break outerLoop;
                             }
                         }
                     }
                 }
                 
-                this.minotaur.state = 'PATROL';
+                // Configurar o boss como uma ameaça lendária
+                this.minotaur.state = 'HUNT'; // Novo estado mais agressivo
                 this.minotaur.vx = 0;
                 this.minotaur.vy = 0;
                 this.minotaur.lastDir = 0;
+                this.minotaur.aggressionLevel = 1.0; // Nível máximo de agressão
+                this.minotaur.huntTimer = 0;
+                this.minotaur.lastPlayerPos = { x: this.player.x, y: this.player.y };
                 
-                console.log(`🐂 Minotauro posicionado em: (${this.minotaur.x.toFixed(1)}, ${this.minotaur.y.toFixed(1)})`);
-                console.log(`🏛️ Labirinto: ${this.maze.width}x${this.maze.height}`);
+                // Logs do boss lendário
+                console.log(`🐂💪 MINOTAURO - O BOSS CHEFEÃO DESPERTA!`);
+                console.log(`🏰 Posição Final: (${this.minotaur.x.toFixed(1)}, ${this.minotaur.y.toFixed(1)})`);
+                console.log(`🏛️ Arena: ${this.maze.width}x${this.maze.height}`);
+                console.log(`✅ Boss Status: ${found ? 'ATIVO E PERIGOSO' : 'ERROR - REPORTE ESTE BUG!'}`);
+                console.log(`🎯 Tentativas de Spawn: ${attempts}`);
+                console.log(`🔥 Nível de Agressão: ${this.minotaur.aggressionLevel}`);
+                
+                if (!found) {
+                    console.error('❌❌❌ ERRO CRÍTICO: BOSS NÃO PÔDE SER SPAWNADO!');
+                }
             }
 
             update(currentTime) {
-                if (this.gameState !== 'playing') return;
+                if (this.gameState !== 'playing' && this.gameState !== 'transitioning') return;
+                if (this.isTransitioning && this.gameState === 'transitioning') return;
 
                 const deltaTime = currentTime - this.lastTime;
                 this.lastTime = currentTime;
@@ -1344,25 +2040,53 @@
             }
 
             updatePlayer(deltaTime) {
-                const speed = 0.003;
+                // Verifica se está correndo (Shift pressionado)
+                const wasRunning = this.isRunning;
+                this.isRunning = this.keys.has('ShiftLeft') || this.keys.has('ShiftRight');
+                
+                // Velocidade base e multiplicador de corrida
+                const baseSpeed = 0.003;
+                const runMultiplier = 2.0; // Corre 2x mais rápido
+                const speed = this.isRunning ? baseSpeed * runMultiplier : baseSpeed;
+                
                 let dx = 0, dy = 0;
+                const wasMoving = dx !== 0 || dy !== 0;
 
                 if (this.keys.has('KeyW') || this.keys.has('ArrowUp')) dy -= speed * deltaTime;
                 if (this.keys.has('KeyS') || this.keys.has('ArrowDown')) dy += speed * deltaTime;
                 if (this.keys.has('KeyA') || this.keys.has('ArrowLeft')) dx -= speed * deltaTime;
                 if (this.keys.has('KeyD') || this.keys.has('ArrowRight')) dx += speed * deltaTime;
 
+                const wasThreadActive = this.threadActive;
                 this.threadActive = this.keys.has('Space');
+                
+                // 🔊 SOM DO FIO DE ARIADNE
+                if (this.threadActive && !wasThreadActive) {
+                    this.playSound('threadActivate');
+                }
 
                 // Move player with collision
                 const newX = this.player.x + dx;
                 const newY = this.player.y + dy;
+                
+                let actuallyMoved = false;
 
                 if (!this.isWall(newX, this.player.y)) {
                     this.player.x = newX;
+                    actuallyMoved = true;
                 }
                 if (!this.isWall(this.player.x, newY)) {
                     this.player.y = newY;
+                    actuallyMoved = true;
+                }
+                
+                // 🔊 SONS DE MOVIMENTO
+                if (actuallyMoved && Math.random() < 0.1) { // 10% chance por frame
+                    if (this.isRunning) {
+                        this.playSound('runFootstep');
+                    } else {
+                        this.playSound('footstep');
+                    }
                 }
 
                 // Add to trail
@@ -1378,35 +2102,175 @@
             }
 
             updateMinotaur(deltaTime) {
-                const speed = 0.002;
+                // 🐂💪 AI DO BOSS CHEFEÃO - MINOTAURO LENDÁRIO
+                const baseSpeed = 0.002;
+                const bossSpeed = baseSpeed * (1 + this.level * 0.1); // Fica mais rápido a cada nível
                 
-                // Simple AI: move randomly, chase if close
+                // Calcular distância para Teseu
                 const distToPlayer = Math.sqrt(
                     Math.pow(this.player.x - this.minotaur.x, 2) + 
                     Math.pow(this.player.y - this.minotaur.y, 2)
                 );
-
-                if (distToPlayer < 4 && this.hasLineOfSight()) {
-                    this.minotaur.state = 'CHASE';
-                    // Move toward player
+                
+                // Atualizar última posição conhecida do jogador
+                if (distToPlayer < 6 || this.hasLineOfSight()) {
+                    this.minotaur.lastPlayerPos = { x: this.player.x, y: this.player.y };
+                    this.minotaur.huntTimer = 5000; // Lembrar por 5 segundos
+                }
+                
+                // Reduzir timer de caça
+                this.minotaur.huntTimer = Math.max(0, this.minotaur.huntTimer - deltaTime);
+                
+                // 🎯 ESTADOS DO BOSS:
+                // 🔊 SONS BASEADOS NO ESTADO DO MINOTAURO
+                const previousState = this.minotaur.state;
+                
+                if (distToPlayer < 2) {
+                    // MODO ATAQUE - Muito próximo!
+                    this.minotaur.state = 'ATTACK';
                     const dx = this.player.x - this.minotaur.x;
                     const dy = this.player.y - this.minotaur.y;
                     const dist = Math.sqrt(dx * dx + dy * dy) || 1;
                     
-                    this.minotaur.vx = (dx / dist) * speed * deltaTime * 1.5;
-                    this.minotaur.vy = (dy / dist) * speed * deltaTime * 1.5;
+                    // 🔊 Som de ataque se mudou para ATTACK
+                    if (previousState !== 'ATTACK' && Math.random() < 0.3) {
+                        this.playSound('minotaurAttack');
+                    }
+                    
+                    // Ataque direcionado muito rápido
+                    this.minotaur.vx = (dx / dist) * bossSpeed * deltaTime * 3.0;
+                    this.minotaur.vy = (dy / dist) * bossSpeed * deltaTime * 3.0;
+                    
+                } else if (distToPlayer < 5 && this.hasLineOfSight()) {
+                    // MODO CAÇA - Pode ver o jogador
+                    this.minotaur.state = 'CHASE';
+                    const dx = this.player.x - this.minotaur.x;
+                    const dy = this.player.y - this.minotaur.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                    
+                    // 🔊 Som de rugido se mudou para CHASE
+                    if (previousState !== 'CHASE' && Math.random() < 0.2) {
+                        this.playSound('minotaurRoar');
+                        this.playMusic('chaseMusic'); // Música mais intensa
+                    }
+                    
+                    // Caça rápida e direcionada
+                    this.minotaur.vx = (dx / dist) * bossSpeed * deltaTime * 2.0;
+                    this.minotaur.vy = (dy / dist) * bossSpeed * deltaTime * 2.0;
+                    
+                    // 🔊 Batimentos cardíacos quando perseguido
+                    if (Math.random() < 0.05) { // 5% chance por frame
+                        this.playSound('heartbeat');
+                    }
+                    
+                } else if (this.minotaur.huntTimer > 0) {
+                    // MODO PERSEGUIÇÃO - Vai para última posição conhecida
+                    this.minotaur.state = 'HUNT';
+                    const dx = this.minotaur.lastPlayerPos.x - this.minotaur.x;
+                    const dy = this.minotaur.lastPlayerPos.y - this.minotaur.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                    
+                    if (dist > 0.5) {
+                        this.minotaur.vx = (dx / dist) * bossSpeed * deltaTime * 1.5;
+                        this.minotaur.vy = (dy / dist) * bossSpeed * deltaTime * 1.5;
+                    } else {
+                        // Chegou na última posição, começar patrulha
+                        this.minotaur.huntTimer = 0;
+                    }
+                    
                 } else {
+                    // 🚶 MODO PATRULHA INTELIGENTE - EXPLORAÇÃO TOTAL DO LABIRINTO
                     this.minotaur.state = 'PATROL';
-                    // Random movement
+                    
+                    // 🔊 Voltar música normal se saiu da perseguição
+                    if (previousState === 'CHASE' || previousState === 'ATTACK') {
+                        this.playMusic('gameMusic');
+                    }
+                    
                     this.minotaur.lastDir -= deltaTime;
+                    
                     if (this.minotaur.lastDir <= 0) {
-                        const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
-                        const [dx, dy] = dirs[Math.floor(Math.random() * dirs.length)];
-                        this.minotaur.vx = dx * speed * deltaTime;
-                        this.minotaur.vy = dy * speed * deltaTime;
-                        this.minotaur.lastDir = 1000 + Math.random() * 2000;
+                        // 🧠 MOVIMENTO INTELIGENTE: Explorar todo o labirinto
+                        let targetX, targetY;
+                        
+                        if (Math.random() < 0.4) {
+                            // 40% - Patrulhar pontos estratégicos
+                            const strategicPoints = [
+                                { x: this.maze.width - 2, y: this.maze.height - 2 }, // Saída
+                                { x: this.maze.width / 2, y: this.maze.height / 2 }, // Centro
+                                { x: this.maze.width * 0.25, y: this.maze.height * 0.25 }, // Quadrante 1
+                                { x: this.maze.width * 0.75, y: this.maze.height * 0.25 }, // Quadrante 2
+                                { x: this.maze.width * 0.25, y: this.maze.height * 0.75 }, // Quadrante 3
+                                { x: this.maze.width * 0.75, y: this.maze.height * 0.75 }, // Quadrante 4
+                                { x: 2, y: 2 }, // Próximo ao início
+                            ];
+                            
+                            const target = strategicPoints[Math.floor(Math.random() * strategicPoints.length)];
+                            targetX = target.x;
+                            targetY = target.y;
+                            
+                        } else if (Math.random() < 0.7) {
+                            // 30% - Movimento aleatório em direções válidas
+                            const directions = [];
+                            const checkDirs = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]];
+                            
+                            // Verificar direções válidas
+                            for (const [dx, dy] of checkDirs) {
+                                const testX = this.minotaur.x + dx * 3;
+                                const testY = this.minotaur.y + dy * 3;
+                                
+                                if (testX > 1 && testX < this.maze.width - 1 && 
+                                    testY > 1 && testY < this.maze.height - 1 &&
+                                    !this.isWall(testX, testY)) {
+                                    directions.push([dx, dy]);
+                                }
+                            }
+                            
+                            if (directions.length > 0) {
+                                const [dx, dy] = directions[Math.floor(Math.random() * directions.length)];
+                                targetX = this.minotaur.x + dx * 3;
+                                targetY = this.minotaur.y + dy * 3;
+                            } else {
+                                // Fallback: mover para centro
+                                targetX = this.maze.width / 2;
+                                targetY = this.maze.height / 2;
+                            }
+                            
+                        } else {
+                            // 30% - Perseguir áreas não exploradas (simulação)
+                            const unexplored = [];
+                            for (let attempts = 0; attempts < 10; attempts++) {
+                                const randX = 2 + Math.random() * (this.maze.width - 4);
+                                const randY = 2 + Math.random() * (this.maze.height - 4);
+                                
+                                if (!this.isWall(randX, randY)) {
+                                    unexplored.push({ x: randX, y: randY });
+                                }
+                            }
+                            
+                            if (unexplored.length > 0) {
+                                const target = unexplored[Math.floor(Math.random() * unexplored.length)];
+                                targetX = target.x;
+                                targetY = target.y;
+                            } else {
+                                targetX = this.maze.width / 2;
+                                targetY = this.maze.height / 2;
+                            }
+                        }
+                        
+                        // Calcular direção para o alvo
+                        const dx = targetX - this.minotaur.x;
+                        const dy = targetY - this.minotaur.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                        
+                        this.minotaur.vx = (dx / dist) * bossSpeed * deltaTime;
+                        this.minotaur.vy = (dy / dist) * bossSpeed * deltaTime;
+                        this.minotaur.lastDir = 1000 + Math.random() * 2000; // Varia entre 1-3s
                     }
                 }
+                
+                // Aumentar agressão com o tempo (boss fica mais perigoso)
+                this.minotaur.aggressionLevel = Math.min(2.0, 1.0 + (this.gameTime / 30000)); // +100% agressão após 30s
 
                 // Move minotaur with collision
                 const newX = this.minotaur.x + this.minotaur.vx;
@@ -1437,6 +2301,9 @@
             }
 
             checkCollisions() {
+                // Não verificar colisões se já está em transição
+                if (this.isTransitioning) return;
+                
                 // Check win condition
                 const exitX = this.maze.width - 2;
                 const exitY = this.maze.height - 2;
@@ -1459,13 +2326,50 @@
             }
 
             gameWon() {
-                this.gameState = 'won';
-                document.getElementById('victory-level').textContent = this.level;
-                document.getElementById('victory-time').textContent = `${Math.floor(this.gameTime / 1000)}s`;
-                this.showOverlay('victory');
+                // 🔊 SONS DE VITÓRIA
+                this.playSound('portalEnter');
+                this.playSound('levelComplete');
+                this.playMusic('victoryMusic');
+                
+                // Não mudar gameState ainda, apenas iniciar transição
+                this.startLevelTransition();
+            }
+
+            startLevelTransition() {
+                console.log('🎆 Iniciando transição de nível...');
+                this.isTransitioning = true;
+                this.gameState = 'transitioning'; // Novo estado para transição
+                
+                const transitionOverlay = document.getElementById('level-transition');
+                const transitionText = document.getElementById('transition-text');
+                
+                if (!transitionOverlay) {
+                    console.error('❌ Elemento level-transition não encontrado!');
+                    // Fallback: ir direto para o próximo nível
+                    this.nextLevel();
+                    return;
+                }
+                
+                // Atualizar texto da transição
+                transitionText.innerHTML = `🏛️ Nível ${this.level} Completo!<br>🌟 Preparando Nível ${this.level + 1}...`;
+                
+                // Mostrar overlay de transição
+                transitionOverlay.classList.add('active');
+                console.log('✨ Overlay de transição ativado');
+                
+                // Aguardar 2 segundos e então ir para o próximo nível
+                setTimeout(() => {
+                    console.log('⏳ Timeout da transição - indo para próximo nível');
+                    this.nextLevel();
+                }, 2000);
             }
 
             gameOver() {
+                // 🔊 SONS DE GAME OVER
+                this.playSound('minotaurRoar'); // Rugido de vitória do Minotauro
+                this.playSound('gameOver');
+                this.stopCurrentMusic();
+                
                 this.gameState = 'gameover';
                 this.showOverlay('gameover');
             }
@@ -1473,6 +2377,21 @@
             nextLevel() {
                 this.level++;
                 this.startLevel();
+                
+                // Remover overlay de transição após o novo nível carregar
+                setTimeout(() => {
+                    this.endLevelTransition();
+                }, 1000);
+            }
+
+            endLevelTransition() {
+                const transitionOverlay = document.getElementById('level-transition');
+                transitionOverlay.classList.remove('active');
+                this.isTransitioning = false;
+                // Garantir que o gameState volte para playing
+                if (this.gameState === 'transitioning') {
+                    this.gameState = 'playing';
+                }
             }
 
             restartLevel() {
@@ -1491,13 +2410,53 @@
                 document.getElementById('hud-level').textContent = this.level;
                 document.getElementById('hud-time').textContent = `${Math.floor(this.gameTime / 1000)}s`;
                 document.getElementById('hud-thread').textContent = this.threadActive ? 'ATIVO' : 'INATIVO';
-                document.getElementById('hud-minotaur').textContent = this.minotaur.state;
+                document.getElementById('hud-running').textContent = this.isRunning ? '🏃' : '🚶';
+                
+                // 🐂 STATUS DETALHADO DO BOSS CHEFEÃO
+                const minotaurElement = document.getElementById('hud-minotaur');
+                let bossStatus = '';
+                
+                switch(this.minotaur.state) {
+                    case 'ATTACK':
+                        bossStatus = '🔥 ATACANDO!';
+                        break;
+                    case 'CHASE':
+                        bossStatus = '🏃‍♂️ CAÇANDO';
+                        break;
+                    case 'HUNT':
+                        bossStatus = '🔍 PERSEGUINDO';
+                        break;
+                    case 'PATROL':
+                        bossStatus = '🚶 PATRULHANDO';
+                        break;
+                    default:
+                        bossStatus = '🐂 ATIVO';
+                }
+                
+                minotaurElement.textContent = bossStatus;
+                
+                // Mudar cor do HUD baseado no perigo
+                if (this.minotaur.state === 'ATTACK') {
+                    minotaurElement.style.color = '#ef4444';
+                    minotaurElement.style.fontWeight = 'bold';
+                } else if (this.minotaur.state === 'CHASE') {
+                    minotaurElement.style.color = '#f59e0b';
+                    minotaurElement.style.fontWeight = 'bold';
+                } else {
+                    minotaurElement.style.color = '#10b981';
+                    minotaurElement.style.fontWeight = 'normal';
+                }
             }
 
             render() {
                 if (!this.ctx || !this.maze) return;
 
-                // Fundo mais claro e colorido
+                // 🎨 RENDERIZAÇÃO OTIMIZADA PARA TODO O ESPAÇO
+                
+                // Limpar canvas completo
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // Fundo mais claro e colorido ocupando todo o espaço
                 const backgroundGradient = this.ctx.createLinearGradient(0, 0, this.canvas.width, this.canvas.height);
                 backgroundGradient.addColorStop(0, '#1e3a8a');
                 backgroundGradient.addColorStop(0.5, '#1e40af');
@@ -1505,56 +2464,53 @@
                 this.ctx.fillStyle = backgroundGradient;
                 this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-                // Draw maze com paredes mais claras
+                // Calcular offset para centralizar o labirinto
+                const totalMazeWidth = this.maze.width * this.cellSize;
+                const totalMazeHeight = this.maze.height * this.cellSize;
+                const offsetX = (this.canvas.width - totalMazeWidth) / 2;
+                const offsetY = (this.canvas.height - totalMazeHeight) / 2;
+
+                // 🏗️ DESENHAR LABIRINTO CENTRALIZADO
                 for (let y = 0; y < this.maze.height; y++) {
                     for (let x = 0; x < this.maze.width; x++) {
+                        const renderX = offsetX + (x * this.cellSize);
+                        const renderY = offsetY + (y * this.cellSize);
+                        
                         if (this.maze.walls[y][x] === 1) {
-                            // Paredes com gradiente dourado
+                            // Paredes com gradiente dourado mais vibrante
                             const wallGradient = this.ctx.createLinearGradient(
-                                x * this.cellSize, y * this.cellSize,
-                                (x + 1) * this.cellSize, (y + 1) * this.cellSize
+                                renderX, renderY,
+                                renderX + this.cellSize, renderY + this.cellSize
                             );
                             wallGradient.addColorStop(0, '#d97706');
                             wallGradient.addColorStop(0.5, '#f59e0b');
                             wallGradient.addColorStop(1, '#fbbf24');
                             this.ctx.fillStyle = wallGradient;
-                            this.ctx.fillRect(
-                                x * this.cellSize, 
-                                y * this.cellSize, 
-                                this.cellSize, 
-                                this.cellSize
-                            );
+                            this.ctx.fillRect(renderX, renderY, this.cellSize, this.cellSize);
                             
-                            // Adicionar borda mais escura para definição
+                            // Borda das paredes para definição
                             this.ctx.strokeStyle = '#92400e';
-                            this.ctx.lineWidth = 1;
-                            this.ctx.strokeRect(
-                                x * this.cellSize, 
-                                y * this.cellSize, 
-                                this.cellSize, 
-                                this.cellSize
-                            );
+                            this.ctx.lineWidth = 0.5;
+                            this.ctx.strokeRect(renderX, renderY, this.cellSize, this.cellSize);
                         }
                     }
                 }
 
-                // Draw exit com efeito especial
+                // ⭐ PORTAL DE SAÍDA COM OFFSET CENTRALIZADO
                 const exitX = this.maze.width - 2;
                 const exitY = this.maze.height - 2;
+                const exitRenderX = offsetX + (exitX * this.cellSize) + this.cellSize/2;
+                const exitRenderY = offsetY + (exitY * this.cellSize) + this.cellSize/2;
                 
                 // Glow da saída
                 this.ctx.save();
                 this.ctx.shadowColor = '#10b981';
                 this.ctx.shadowBlur = 20;
                 
-                // Gradiente da saída
+                // Gradiente da saída centralizado
                 const exitGradient = this.ctx.createRadialGradient(
-                    exitX * this.cellSize + this.cellSize/2,
-                    exitY * this.cellSize + this.cellSize/2,
-                    0,
-                    exitX * this.cellSize + this.cellSize/2,
-                    exitY * this.cellSize + this.cellSize/2,
-                    this.cellSize/2
+                    exitRenderX, exitRenderY, 0,
+                    exitRenderX, exitRenderY, this.cellSize/2
                 );
                 exitGradient.addColorStop(0, '#10b981');
                 exitGradient.addColorStop(0.7, '#059669');
@@ -1605,15 +2561,13 @@
                     this.ctx.restore();
                 }
 
-                // Draw player (Teseu) - Herói com ícone
+                // Draw player (Teseu) - Herói sem efeitos de fumaça
                 this.ctx.save();
-                this.ctx.shadowColor = '#60a5fa';
-                this.ctx.shadowBlur = 15;
                 
                 const playerX = this.player.x * this.cellSize;
                 const playerY = this.player.y * this.cellSize;
                 
-                // Círculo azul brilhante para o herói
+                // Círculo azul simples para o herói
                 const playerGradient = this.ctx.createRadialGradient(
                     playerX, playerY, 0,
                     playerX, playerY, this.cellSize * 0.4
@@ -1641,14 +2595,38 @@
                 
                 this.ctx.restore();
 
-                // Draw minotaur - Monstro com ícone
+                // 🐂💪 DESENHAR BOSS CHEFEÃO - MINOTAURO LENDÁRIO CENTRALIZADO
                 this.ctx.save();
-                const isChasing = this.minotaur.state === 'CHASE';
-                this.ctx.shadowColor = isChasing ? '#ef4444' : '#f59e0b';
-                this.ctx.shadowBlur = isChasing ? 25 : 15;
                 
-                const minotaurX = this.minotaur.x * this.cellSize;
-                const minotaurY = this.minotaur.y * this.cellSize;
+                // Efeitos visuais baseados no estado do boss
+                let shadowColor, shadowBlur, glowIntensity;
+                switch(this.minotaur.state) {
+                    case 'ATTACK':
+                        shadowColor = '#dc2626'; // Vermelho intenso
+                        shadowBlur = 35;
+                        glowIntensity = 1.2;
+                        break;
+                    case 'CHASE':
+                        shadowColor = '#ef4444'; // Vermelho
+                        shadowBlur = 25;
+                        glowIntensity = 1.0;
+                        break;
+                    case 'HUNT':
+                        shadowColor = '#f59e0b'; // Laranja
+                        shadowBlur = 20;
+                        glowIntensity = 0.8;
+                        break;
+                    default:
+                        shadowColor = '#d97706'; // Laranja escuro
+                        shadowBlur = 15;
+                        glowIntensity = 0.6;
+                }
+                
+                this.ctx.shadowColor = shadowColor;
+                this.ctx.shadowBlur = shadowBlur;
+                
+                const minotaurX = offsetX + (this.minotaur.x * this.cellSize);
+                const minotaurY = offsetY + (this.minotaur.y * this.cellSize);
                 
                 // Debug - verificar se está dentro da tela
                 if (Math.random() < 0.005) { // Log apenas raramente
@@ -1661,11 +2639,25 @@
                     minotaurX, minotaurY, this.cellSize * 0.4
                 );
                 
-                if (isChasing) {
+                // Gradiente dinâmico baseado no estado do boss
+                if (this.minotaur.state === 'ATTACK') {
+                    // Vermelho intenso - PERIGO MÁXIMO!
+                    minotaurGradient.addColorStop(0, '#fecaca');
+                    minotaurGradient.addColorStop(0.4, '#ef4444');
+                    minotaurGradient.addColorStop(0.8, '#dc2626');
+                    minotaurGradient.addColorStop(1, '#991b1b');
+                } else if (this.minotaur.state === 'CHASE') {
+                    // Vermelho médio - ALERTA!
                     minotaurGradient.addColorStop(0, '#fca5a5');
                     minotaurGradient.addColorStop(0.6, '#ef4444');
                     minotaurGradient.addColorStop(1, '#dc2626');
+                } else if (this.minotaur.state === 'HUNT') {
+                    // Laranja intenso - PERSEGUIÇÃO
+                    minotaurGradient.addColorStop(0, '#fed7aa');
+                    minotaurGradient.addColorStop(0.6, '#f59e0b');
+                    minotaurGradient.addColorStop(1, '#d97706');
                 } else {
+                    // Laranja normal - PATRULHA
                     minotaurGradient.addColorStop(0, '#fcd34d');
                     minotaurGradient.addColorStop(0.6, '#f59e0b');
                     minotaurGradient.addColorStop(1, '#d97706');
@@ -1673,56 +2665,58 @@
                 
                 this.ctx.fillStyle = minotaurGradient;
                 this.ctx.beginPath();
-                this.ctx.arc(minotaurX, minotaurY, this.cellSize * 0.38, 0, Math.PI * 2);
+                
+                // Boss fica maior e mais imponente com os níveis
+                const bossSize = this.cellSize * (0.4 + (this.level * 0.02)); // Cresce 2% por nível
+                this.ctx.arc(minotaurX, minotaurY, bossSize, 0, Math.PI * 2);
                 this.ctx.fill();
                 
-                // Borda do minotauro
-                this.ctx.strokeStyle = isChasing ? '#dc2626' : '#d97706';
-                this.ctx.lineWidth = 2;
+                // Borda do boss mais grossa e dinâmica
+                const borderColors = {
+                    'ATTACK': '#991b1b',
+                    'CHASE': '#dc2626',
+                    'HUNT': '#d97706',
+                    'PATROL': '#92400e'
+                };
+                
+                this.ctx.strokeStyle = borderColors[this.minotaur.state] || '#d97706';
+                this.ctx.lineWidth = this.minotaur.state === 'ATTACK' ? 4 : 3;
                 this.ctx.stroke();
                 
-                // Ícone do minotauro (🐂)
-                this.ctx.font = `${this.cellSize * 0.5}px Arial`;
-                this.ctx.fillStyle = '#ffffff';
+                // Anel adicional para estados perigosos
+                if (this.minotaur.state === 'ATTACK' || this.minotaur.state === 'CHASE') {
+                    this.ctx.beginPath();
+                    this.ctx.arc(minotaurX, minotaurY, bossSize + 3, 0, Math.PI * 2);
+                    this.ctx.strokeStyle = this.minotaur.state === 'ATTACK' ? '#fca5a5' : '#fed7aa';
+                    this.ctx.lineWidth = 1;
+                    this.ctx.stroke();
+                }
+                
+                // 🐂💪 ÍCONE DO BOSS CHEFEÃO LENDÁRIO
+                const bossFontSize = this.cellSize * (0.5 + (this.level * 0.01)); // Cresce com nível
+                this.ctx.font = `${bossFontSize}px Arial`;
+                this.ctx.fillStyle = this.minotaur.state === 'ATTACK' ? '#ffffff' : '#ffffff';
                 this.ctx.textAlign = 'center';
                 this.ctx.textBaseline = 'middle';
-                this.ctx.fillText('🐂', minotaurX, minotaurY);
+                
+                // Efeito de pulsação para estados perigosos
+                if (this.minotaur.state === 'ATTACK') {
+                    const pulse = 1 + Math.sin(Date.now() / 100) * 0.1; // Pulsação rápida
+                    this.ctx.save();
+                    this.ctx.scale(pulse, pulse);
+                    this.ctx.fillText('🐂', minotaurX / pulse, minotaurY / pulse);
+                    this.ctx.restore();
+                } else {
+                    this.ctx.fillText('🐂', minotaurX, minotaurY);
+                }
                 
                 this.ctx.restore();
 
-                // Efeito de iluminação sutil e colorido
-                this.ctx.save();
-                this.ctx.fillStyle = 'rgba(0, 0, 20, 0.15)';
-                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-                this.ctx.globalCompositeOperation = 'destination-out';
-
-                const lightRadius = this.cellSize * 6;
-                const lightGradient = this.ctx.createRadialGradient(
-                    this.player.x * this.cellSize, 
-                    this.player.y * this.cellSize, 
-                    lightRadius * 0.2,
-                    this.player.x * this.cellSize, 
-                    this.player.y * this.cellSize, 
-                    lightRadius
-                );
-                lightGradient.addColorStop(0, 'rgba(0, 0, 20, 0.8)');
-                lightGradient.addColorStop(0.4, 'rgba(0, 0, 20, 0.3)');
-                lightGradient.addColorStop(1, 'rgba(0, 0, 20, 0)');
-                
-                this.ctx.fillStyle = lightGradient;
-                this.ctx.beginPath();
-                this.ctx.arc(
-                    this.player.x * this.cellSize, 
-                    this.player.y * this.cellSize, 
-                    lightRadius, 
-                    0, 
-                    Math.PI * 2
-                );
-                this.ctx.fill();
-                this.ctx.restore();
+                // Efeito de iluminação removido para visual mais limpo
             }
 
             showHelp() {
+                this.playSound('buttonClick'); // 🔊 Som de clique
                 alert(`❓ Como Jogar - Labirinto de Creta:
 
 🎯 OBJETIVO:
@@ -1730,23 +2724,30 @@
 
 🎮 CONTROLES:
 • WASD ou Setas: Mover Teseu
+• SHIFT: Correr (2x mais rápido)
 • SPACE: Ativar/desativar Fio de Ariadne
 • ESC: Voltar ao menu
 
 🧵 FIO DE ARIADNE:
 • Deixa um rastro dourado do seu caminho
 • Use para não se perder no labirinto
+• Ative/desative com SPACE
 
 🐂 MINOTAURO:
-• Patrulha o labirinto procurando por você
-• Fica vermelho e mais rápido quando te persegue
-• Evite ser capturado!
+• Boss lendário que patrulha o labirinto
+• Evite ser capturado por ele!
+• Estados: Patrulha, Caça, Ataque
+
+🔊 ÁUDIO:
+• Trilha sonora dinâmica
+• Efeitos sonoros imersivos
+• Música muda com as situações
 
 🏆 DICAS:
-• Use as paredes para se esconder
-• O Fio de Ariadne te ajuda a voltar
-• Seja rápido mas cuidadoso!
-• A saída fica no canto inferior direito (verde)`);
+• Use SHIFT para correr quando necessário
+• O Fio de Ariadne ajuda na navegação
+• Observe o comportamento do Minotauro
+• Escute os sons para antecipar perigos`);
             }
 
             showSettings() {
@@ -1754,7 +2755,8 @@
 
 🎮 CONTROLES:
 • WASD: Movimento principal
-• Setas: Movimento alternativo  
+• Setas: Movimento alternativo
+• SHIFT: Corrida (dobra velocidade)
 • SPACE: Fio de Ariadne
 • ESC: Menu
 
