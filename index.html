@@ -1,2233 +1,1734 @@
-<!DOCTYPE html><!DOCTYPE html><!DOCTYPE html>
-
+<!DOCTYPE html>
 <html lang="pt-BR">
-
-<head><html lang="pt-BR"><html lang="pt-BR">
-
+<head>
     <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"><head><head>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🏛️ Labirinto de Creta</title>
-
-    <style>    <meta charset="UTF-8">    <meta charset="UTF-8">
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
-
-            font-family: 'Arial', sans-serif;    <title>🏛️ Labirinto de Creta - O Desafio do Minotauro</title>    <title>Labirinto de Creta - O Desafio do Minotauro</title>
-
-            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
-
-            color: #fff;    <meta name="description" content="Escape do labirinto sem ser capturado pelo Minotauro implacável!">    <link rel="stylesheet" href="style.css">
-
+            font-family: 'Orbitron', 'Arial', sans-serif;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 107, 53, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(102, 126, 234, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 60% 60%, rgba(50, 205, 50, 0.15) 0%, transparent 50%),
+                linear-gradient(135deg, #1e3a8a 0%, #3b82f6 25%, #06b6d4 50%, #10b981 75%, #f59e0b 100%);
+            color: #fff;
             overflow: hidden;
-
-            height: 100vh;    <style>    <link rel="stylesheet" href="telas.css">
-
+            min-height: 100vh;
+            background-attachment: fixed;
         }
 
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Poppins:wght@300;400;600&display=swap');    <meta name="description" content="Escape do labirinto sem ser capturado pelo Minotauro implacável!">
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="stars" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="0.8" fill="%23ffd700" opacity="0.4"/><circle cx="12" cy="8" r="0.5" fill="%23fff" opacity="0.3"/><circle cx="18" cy="15" r="0.6" fill="%23ff6b35" opacity="0.2"/><circle cx="5" cy="18" r="0.4" fill="%2367eea" opacity="0.25"/></pattern></defs><rect width="100" height="100" fill="url(%23stars)"/></svg>') repeat;
+            pointer-events: none;
+            z-index: -1;
+            animation: starfield 60s linear infinite;
+        }
+
+        @keyframes starfield {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-100px); }
+        }
 
         .screen {
-
-            position: fixed;</head>
-
-            top: 0; left: 0; width: 100%; height: 100%;
-
-            display: none;        * {<body>
-
-            justify-content: center;
-
-            align-items: center;            margin: 0;    <!-- TELA PRINCIPAL DE MENU -->
-
-            background: rgba(0,0,0,0.9);
-
-        }            padding: 0;    <div id="tela-menu" class="overlay active">
-
-
-
-        .screen.active { display: flex; }            box-sizing: border-box;        <div class="menu-container">
-
-
-
-        .menu {        }            <div class="logo-section">
-
-            text-align: center;
-
-            background: rgba(26,26,46,0.95);                <h1 class="game-title">🏛️ LABIRINTO DE CRETA</h1>
-
-            padding: 3rem;
-
-            border-radius: 20px;        body {                <p class="game-subtitle">O Desafio do Minotauro</p>
-
-            border: 2px solid rgba(255,215,0,0.3);
-
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);            font-family: 'Poppins', sans-serif;            </div>
-
-        }
-
-            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);            
-
-        .title {
-
-            font-size: 2.5rem;            color: #fff;            <div class="menu-buttons">
-
-            color: #ffd700;
-
-            margin-bottom: 1rem;            overflow: hidden;                <button id="btn-iniciar" class="menu-btn primary">
-
-            text-shadow: 0 0 20px rgba(255,215,0,0.5);
-
-        }            min-height: 100vh;                    🎮 INICIAR JOGO
-
-
-
-        .btn {        }                </button>
-
-            display: block;
-
-            width: 100%;                <button id="btn-continuar" class="menu-btn secondary" style="display: none;">
-
-            padding: 15px;
-
-            margin: 10px 0;        /* ANIMAÇÕES */                    ▶️ CONTINUAR
-
-            border: none;
-
-            border-radius: 8px;        @keyframes titleGlow {                </button>
-
-            font-size: 1.1rem;
-
-            cursor: pointer;            0% {                 <button id="btn-configuracoes" class="menu-btn secondary">
-
-            transition: all 0.3s;
-
-            text-transform: uppercase;                text-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(255, 215, 0, 0.3);                    ⚙️ CONFIGURAÇÕES
-
-        }
-
-                transform: scale(1);                </button>
-
-        .btn-primary {
-
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);            }                <button id="btn-creditos" class="menu-btn secondary">
-
-            color: white;
-
-        }            50% {                     👥 CRÉDITOS
-
-
-
-        .btn-primary:hover {                text-shadow: 0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.5);                </button>
-
-            transform: translateY(-2px);
-
-            box-shadow: 0 8px 25px rgba(255,107,107,0.6);                transform: scale(1.02);                <button id="btn-ajuda" class="menu-btn secondary">
-
-        }
-
-            }                    ❓ COMO JOGAR
-
-        .btn-secondary {
-
-            background: rgba(255,255,255,0.1);            100% {                 </button>
-
-            color: #fff;
-
-            border: 2px solid rgba(255,255,255,0.2);                text-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(255, 215, 0, 0.3);            </div>
-
-        }
-
-                transform: scale(1);            
-
-        .btn-secondary:hover {
-
-            background: rgba(255,255,255,0.2);            }            <div class="version-info">
-
-            border-color: #ffd700;
-
-        }        }                <span>Versão 2.0 - Sistema Completo</span>
-
-
-
-        .game-container {            </div>
-
-            position: relative;
-
-            width: 100%;        @keyframes fadeInUp {        </div>
-
-            height: 100vh;
-
-            display: flex;            from {    </div>
-
-            flex-direction: column;
-
-            align-items: center;                opacity: 0;
-
-            justify-content: center;
-
-        }                transform: translateY(30px);    <!-- TELA DO JOGO -->
-
-
-
-        .hud {            }    <div id="tela-jogo" class="overlay">
-
             position: fixed;
-
-            top: 0;            to {        <div id="game-container">
-
+            top: 0;
             left: 0;
-
-            right: 0;                opacity: 1;            <!-- HUD Principal -->
-
-            background: rgba(0,0,0,0.8);
-
-            padding: 1rem;                transform: translateY(0);            <div id="hud" class="game-hud">
-
-            display: flex;
-
-            justify-content: space-between;            }                <div class="hud-section left">
-
+            width: 100%;
+            height: 100%;
+            display: none;
             align-items: center;
-
-            z-index: 10;        }                    <div class="hud-item">
-
+            justify-content: center;
+            backdrop-filter: blur(20px);
+            transition: all 0.5s ease-in-out;
         }
 
-                        <span class="hud-label">Nível:</span>
+        .screen.active {
+            display: flex;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Tela de Loading */
+        .loading-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(30px);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 30px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: floatingGlow 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatingGlow {
+            0% { 
+                transform: translateY(0px) rotate(0deg);
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 30px rgba(255, 215, 0, 0.2);
+            }
+            100% { 
+                transform: translateY(-10px) rotate(0.5deg);
+                box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4), 0 0 50px rgba(255, 215, 0, 0.4);
+            }
+        }
+
+        .logo-loading {
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .logo-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            display: block;
+            animation: iconFloat 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
+            transform-style: preserve-3d;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { 
+                transform: translateY(0px) rotateY(0deg);
+                text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            }
+            50% { 
+                transform: translateY(-15px) rotateY(10deg);
+                text-shadow: 0 0 50px rgba(255, 215, 0, 1);
+            }
+        }
+
+        .logo-text {
+            font-family: 'Cinzel', serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #ffd700, #ffed4e, #ff6b35, #f7931e, #ffd700);
+            background-size: 300% 300%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            animation: textShimmer 3s ease-in-out infinite, textGlow 2s ease-in-out infinite alternate;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            letter-spacing: 2px;
+        }
+
+        @keyframes textShimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes textGlow {
+            from { filter: brightness(1) contrast(1); }
+            to { filter: brightness(1.3) contrast(1.1); }
+        }
+
+        .loading-bar-container {
+            width: 350px;
+            height: 25px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 2rem auto;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 4px 20px rgba(255, 215, 0, 0.2);
+        }
+
+        .loading-bar-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: scanLine 2s linear infinite;
+        }
+
+        @keyframes scanLine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, 
+                #ff6b35 0%, 
+                #f7931e 25%, 
+                #ffd700 50%, 
+                #ffed4e 75%, 
+                #ffd700 100%
+            );
+            background-size: 200% 100%;
+            width: 0%;
+            transition: width 0.5s ease-out;
+            animation: progressShimmer 2s linear infinite;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes progressShimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .loading-text {
+            font-size: 1.2rem;
+            margin-top: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Tela de Menu */
+        .menu-container {
+            text-align: center;
+            max-width: 600px;
+            padding: 3rem;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(30px);
+            border: 2px solid rgba(255, 215, 0, 0.2);
+            border-radius: 30px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(255, 215, 0, 0.1), transparent, rgba(255, 107, 107, 0.1), transparent);
+            animation: rotateBackground 20s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes rotateBackground {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .menu-header {
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .logo-title {
+            font-family: 'Cinzel', serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #ffd700, #ffed4e, #ff6b35, #f7931e, #ffd700);
+            background-size: 300% 300%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            margin-bottom: 1rem;
+            animation: titlePulse 4s ease-in-out infinite, textShimmer 3s ease-in-out infinite;
+            text-shadow: 0 0 40px rgba(255, 215, 0, 0.8);
+            letter-spacing: 3px;
+            transform-style: preserve-3d;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { transform: scale(1) rotateX(0deg); }
+            50% { transform: scale(1.05) rotateX(5deg); }
+        }
+
+        .logo-subtitle {
+            font-size: 1.4rem;
+            font-weight: 400;
+            color: #ffd700;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+            text-shadow: 0 2px 10px rgba(255, 215, 0, 0.5);
+            animation: subtitleFloat 3s ease-in-out infinite alternate;
+            letter-spacing: 1px;
+        }
+
+        @keyframes subtitleFloat {
+            from { transform: translateY(0px); opacity: 0.9; }
+            to { transform: translateY(-5px); opacity: 1; }
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .menu-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            padding: 1.2rem 2.5rem;
+            border: none;
+            border-radius: 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            min-height: 70px;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            backdrop-filter: blur(20px);
+            border: 2px solid transparent;
+        }
+
+        .menu-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .menu-btn:hover::before {
+            left: 100%;
+        }
+
+        .menu-btn:hover {
+            transform: translateY(-5px) scale(1.02);
+            filter: brightness(1.1);
+        }
+
+        .menu-btn:active {
+            transform: translateY(-2px) scale(0.98);
+        }
+
+        .menu-btn.primary {
+            background: linear-gradient(135deg, #ff6b35, #f7931e, #ffd700);
+            background-size: 200% 200%;
+            color: white;
+            box-shadow: 
+                0 8px 25px rgba(255, 107, 53, 0.4),
+                0 4px 15px rgba(247, 147, 30, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            animation: primaryGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes primaryGlow {
+            0%, 100% { 
+                background-position: 0% 50%;
+                box-shadow: 
+                    0 8px 25px rgba(255, 107, 53, 0.4),
+                    0 4px 15px rgba(247, 147, 30, 0.3),
+                    0 0 30px rgba(255, 215, 0, 0.2);
+            }
+            50% { 
+                background-position: 100% 50%;
+                box-shadow: 
+                    0 12px 35px rgba(255, 107, 53, 0.6),
+                    0 6px 20px rgba(247, 147, 30, 0.5),
+                    0 0 50px rgba(255, 215, 0, 0.4);
+            }
+        }
+
+        .menu-btn.primary:hover {
+            box-shadow: 
+                0 15px 40px rgba(255, 107, 53, 0.6),
+                0 8px 25px rgba(247, 147, 30, 0.5),
+                0 0 60px rgba(255, 215, 0, 0.5);
+        }
+
+        .menu-btn.secondary {
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+            background-size: 200% 200%;
+            color: white;
+            box-shadow: 
+                0 8px 25px rgba(102, 126, 234, 0.4),
+                0 4px 15px rgba(118, 75, 162, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            animation: secondaryGlow 4s ease-in-out infinite;
+        }
+
+        @keyframes secondaryGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .menu-btn.secondary:hover {
+            box-shadow: 
+                0 15px 40px rgba(102, 126, 234, 0.6),
+                0 8px 25px rgba(118, 75, 162, 0.5);
+        }
+
+        .menu-btn.tertiary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(30px);
+            box-shadow: 
+                0 8px 25px rgba(255, 255, 255, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .menu-btn.tertiary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 
+                0 15px 40px rgba(255, 255, 255, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .menu-footer {
+            font-size: 1rem;
+            opacity: 0.8;
+            line-height: 1.6;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 15px;
+            backdrop-filter: blur(20px);
+        }
+
+        .controls-hint {
+            color: #ffd700;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 5px rgba(255, 215, 0, 0.3);
+        }
+
+        .version-info {
+            color: #ccc;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        /* Tela de Jogo */
+        .game-hud {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(180deg, 
+                rgba(0, 0, 0, 0.9) 0%, 
+                rgba(0, 0, 0, 0.7) 70%, 
+                transparent 100%
+            );
+            backdrop-filter: blur(20px);
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .hud-left, .hud-right {
+            display: flex;
+            gap: 2rem;
+        }
 
         .hud-item {
-
-            display: flex;        @keyframes buttonHover {                        <span id="level" class="hud-value">1</span>
-
+            display: flex;
             flex-direction: column;
-
-            align-items: center;            0% { transform: translateY(0) scale(1); }                    </div>
-
+            align-items: center;
+            gap: 0.3rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.8rem 1.2rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
         }
 
-            50% { transform: translateY(-2px) scale(1.02); }                    <div class="hud-item">
+        .hud-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 215, 0, 0.5);
+            transform: translateY(-2px);
+        }
 
         .hud-label {
-
-            font-size: 0.8rem;            100% { transform: translateY(0) scale(1); }                        <span class="hud-label">Tempo:</span>
-
-            color: #aaa;
-
-            text-transform: uppercase;        }                        <span id="time" class="hud-value">00:00</span>
-
+            font-size: 0.8rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #ccc;
         }
-
-                    </div>
 
         .hud-value {
-
-            font-size: 1.2rem;        /* OVERLAY SYSTEM */                </div>
-
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 1.1rem;
             color: #ffd700;
-
-            font-weight: bold;        .overlay {                
-
+            text-shadow: 0 2px 10px rgba(255, 215, 0, 0.5);
+            animation: valueGlow 2s ease-in-out infinite alternate;
         }
 
-            position: fixed;                <div class="hud-section center">
-
-        #gameCanvas {
-
-            border: 3px solid rgba(255,215,0,0.3);            top: 0;                    <button id="btn-pausa" class="hud-btn">⏸️ PAUSA</button>
-
-            border-radius: 10px;
-
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);            left: 0;                </div>
-
+        @keyframes valueGlow {
+            from { text-shadow: 0 2px 10px rgba(255, 215, 0, 0.5); }
+            to { text-shadow: 0 2px 20px rgba(255, 215, 0, 0.8); }
         }
 
-            width: 100%;                
+        .game-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffd700;
+            text-shadow: 0 2px 15px rgba(255, 215, 0, 0.6);
+            letter-spacing: 2px;
+            animation: titleShine 3s ease-in-out infinite;
+        }
 
-        .message {
+        @keyframes titleShine {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.2); }
+        }
 
-            position: fixed;            height: 100%;                <div class="hud-section right">
+        .game-area {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 15px 15px;
+            position: relative;
+        }
 
-            top: 50%;
+        .game-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 30% 70%, rgba(255, 215, 0, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 70% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: -1;
+        }
 
-            left: 50%;            display: none;                    <div class="hud-item">
+        #game-canvas {
+            border: 3px solid #ffd700;
+            border-radius: 15px;
+            background: linear-gradient(145deg, #1e40af, #1e3a8a);
+            box-shadow: 
+                0 0 60px rgba(255, 215, 0, 0.5),
+                0 20px 60px rgba(59, 130, 246, 0.3),
+                0 0 100px rgba(16, 185, 129, 0.2),
+                inset 0 2px 10px rgba(255, 255, 255, 0.1);
+            position: relative;
+            transition: all 0.3s ease;
+        }
 
-            transform: translate(-50%, -50%);
+        #game-canvas:hover {
+            box-shadow: 
+                0 0 80px rgba(255, 215, 0, 0.5),
+                0 25px 80px rgba(0, 0, 0, 0.6),
+                inset 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
 
-            background: rgba(0,0,0,0.9);            justify-content: center;                        <span class="hud-label">Fio:</span>
+        #game-canvas::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(45deg, #ffd700, #ff6b35, #667eea, #ffd700);
+            background-size: 300% 300%;
+            border-radius: 18px;
+            z-index: -1;
+            animation: borderGlow 4s ease-in-out infinite;
+        }
 
-            padding: 2rem;
+        @keyframes borderGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
 
-            border-radius: 10px;            align-items: center;                        <span id="fio" class="hud-value fio-status">OFF</span>
+        /* Overlays */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at center, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.9) 100%);
+            backdrop-filter: blur(20px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            animation: overlayFade 0.5s ease-out;
+        }
 
-            border: 2px solid #ffd700;
+        @keyframes overlayFade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
 
-            z-index: 1000;            z-index: 100;                    </div>
-
+        .modal {
+            background: 
+                linear-gradient(145deg, rgba(26, 26, 46, 0.95) 0%, rgba(22, 33, 62, 0.95) 100%);
+            border: 3px solid rgba(255, 215, 0, 0.6);
+            border-radius: 25px;
+            padding: 3rem;
             text-align: center;
-
-        }            backdrop-filter: blur(10px);                    <div class="hud-item">
-
-
-
-        .message.hidden { display: none; }            background: rgba(0, 0, 0, 0.9);                        <span class="hud-label">Estado:</span>
-
-
-
-        .help {        }                        <span id="minotaur-status" class="hud-value minotaur-status">🟢</span>
-
-            text-align: left;
-
-            max-width: 600px;                    </div>
-
-            line-height: 1.6;
-
-        }        .overlay.active {                </div>
-
-
-
-        .help h3 { color: #ffd700; margin: 1rem 0 0.5rem; }            display: flex;            </div>
-
-        .help p { margin-bottom: 0.5rem; }
-
-        kbd {        }
-
-            background: #444;
-
-            padding: 2px 6px;            <!-- Canvas do Jogo -->
-
-            border-radius: 3px;
-
-            font-family: monospace;        /* MENU PRINCIPAL */            <canvas id="gameCanvas" width="800" height="600"></canvas>
-
+            min-width: 400px;
+            max-width: 600px;
+            backdrop-filter: blur(30px);
+            box-shadow: 
+                0 25px 80px rgba(0, 0, 0, 0.5),
+                0 0 50px rgba(255, 215, 0, 0.2),
+                inset 0 2px 10px rgba(255, 255, 255, 0.1);
+            position: relative;
+            animation: modalSlideIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-    </style>        .menu-container {
+        @keyframes modalSlideIn {
+            from { 
+                opacity: 0;
+                transform: translateY(50px) scale(0.9);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
 
+        .modal::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #ffd700, #ff6b35, #667eea, #ffd700);
+            background-size: 300% 300%;
+            border-radius: 27px;
+            z-index: -1;
+            animation: modalBorderGlow 4s ease-in-out infinite;
+        }
+
+        @keyframes modalBorderGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .modal-title {
+            font-family: 'Cinzel', serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #ffd700;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 4px 15px rgba(255, 215, 0, 0.6);
+            letter-spacing: 2px;
+            animation: modalTitleGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes modalTitleGlow {
+            from { 
+                text-shadow: 0 4px 15px rgba(255, 215, 0, 0.6);
+                transform: scale(1);
+            }
+            to { 
+                text-shadow: 0 6px 25px rgba(255, 215, 0, 0.9);
+                transform: scale(1.02);
+            }
+        }
+
+        .modal-content {
+            margin-bottom: 2.5rem;
+            line-height: 1.7;
+            font-size: 1.1rem;
+            color: #e0e0e0;
+        }
+
+        .modal-content p {
+            margin-bottom: 1rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .modal-btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 15px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+            backdrop-filter: blur(20px);
+        }
+
+        .modal-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .modal-btn:hover::before {
+            left: 100%;
+        }
+
+        .modal-btn.primary {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: white;
+            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+            border-color: rgba(255, 107, 53, 0.3);
+        }
+
+        .modal-btn.secondary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .modal-btn.tertiary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            filter: brightness(1.1);
+        }
+
+        .modal-btn:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .victory-stats {
+            margin: 2rem 0;
+            padding: 2rem;
+            background: 
+                linear-gradient(145deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 107, 53, 0.1) 100%);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 15px;
+            backdrop-filter: blur(20px);
+            box-shadow: 
+                0 10px 30px rgba(255, 215, 0, 0.2),
+                inset 0 2px 10px rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 1rem 0;
+            padding: 0.8rem 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 215, 0, 0.4);
+            transform: translateX(5px);
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #ccc;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', monospace;
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-shadow: 0 2px 10px rgba(255, 215, 0, 0.5);
+            animation: statGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes statGlow {
+            from { text-shadow: 0 2px 10px rgba(255, 215, 0, 0.5); }
+            to { text-shadow: 0 4px 20px rgba(255, 215, 0, 0.8); }
+        }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .game-hud {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .hud-left, .hud-right {
+                display: flex;
+                gap: 0.8rem;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .hud-item {
+                padding: 0.6rem 1rem;
+                min-width: 80px;
+            }
+
+            .game-title {
+                font-size: 1.4rem;
+                text-align: center;
+            }
+
+            #game-canvas {
+                width: 90vw;
+                height: auto;
+                max-width: 400px;
+            }
+
+            .menu-container {
+                padding: 2rem 1rem;
+                max-width: 95%;
+                margin: 0 10px;
+            }
+
+            .logo-title {
+                font-size: 2.5rem;
+            }
+
+            .logo-icon {
+                font-size: 4rem;
+            }
+
+            .menu-btn {
+                padding: 1rem 1.5rem;
+                font-size: 1rem;
+                min-height: 60px;
+            }
+
+            .modal {
+                min-width: 320px;
+                max-width: 90%;
+                padding: 2rem 1.5rem;
+                margin: 0 20px;
+            }
+
+            .modal-title {
+                font-size: 1.8rem;
+            }
+
+            .modal-actions {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .modal-btn {
+                width: 100%;
+                padding: 1rem;
+            }
+
+            .loading-bar-container {
+                width: 280px;
+            }
+
+            .game-area {
+                padding: 100px 8px 15px;
+            }
+
+            .stat-item {
+                padding: 0.6rem 1rem;
+                margin: 0.8rem 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .menu-container {
+                padding: 1.5rem 0.8rem;
+            }
+
+            .logo-title {
+                font-size: 2rem;
+            }
+
+            .logo-subtitle {
+                font-size: 1.1rem;
+            }
+
+            .hud-left, .hud-right {
+                gap: 0.5rem;
+            }
+
+            .hud-item {
+                padding: 0.5rem 0.8rem;
+                min-width: 70px;
+            }
+
+            .hud-label {
+                font-size: 0.7rem;
+            }
+
+            .hud-value {
+                font-size: 1rem;
+            }
+
+            .modal {
+                padding: 1.5rem 1rem;
+            }
+
+            .modal-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
 </head>
-
-<body>            text-align: center;            <!-- Mensagem Temporária -->
-
-    <!-- MENU PRINCIPAL -->
-
-    <div id="menu" class="screen active">            padding: 2rem;            <div id="game-message" class="message-overlay hidden">
-
-        <div class="menu">
-
-            <h1 class="title">🏛️ LABIRINTO DE CRETA</h1>            border-radius: 20px;                <div class="message-content">
-
-            <p style="margin-bottom: 2rem; color: #aaa;">O Desafio do Minotauro</p>
-
-                        background: linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(22, 33, 62, 0.95));                    <p id="message-text">Bem-vindo ao Labirinto!</p>
-
-            <button class="btn btn-primary" onclick="startGame()">
-
-                🎮 INICIAR JOGO            border: 2px solid rgba(255, 215, 0, 0.3);                </div>
-
-            </button>
-
-            <button class="btn btn-secondary" onclick="showHelp()">            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);            </div>
-
-                ❓ COMO JOGAR
-
-            </button>            animation: fadeInUp 1s ease-out;        </div>
-
-            
-
-            <p style="margin-top: 2rem; color: #666; font-size: 0.9rem;">            max-width: 500px;    </div>
-
-                Versão Única - Sistema Integrado
-
-            </p>        }
-
+<body>
+    <!-- Tela de Loading -->
+    <div id="loading-screen" class="screen active">
+        <div class="loading-container">
+            <div class="logo-loading">
+                <div class="logo-icon">🏛️</div>
+                <h1 class="logo-text">Labirinto de Creta</h1>
+            </div>
+            <div class="loading-bar-container">
+                <div class="loading-progress" id="loading-progress"></div>
+            </div>
+            <div class="loading-text" id="loading-text">Inicializando...</div>
+            <div class="loading-info">
+                <p>🎮 Preparando o desafio do Minotauro...</p>
+            </div>
         </div>
-
-    </div>    <!-- TELA DE PAUSA -->
-
-
-
-    <!-- TELA DO JOGO -->        .game-title {    <div id="tela-pausa" class="overlay">
-
-    <div id="game" class="screen">
-
-        <div class="game-container">            font-family: 'Cinzel', serif;        <div class="pause-container">
-
-            <div class="hud">
-
-                <div class="hud-item">            font-size: 3rem;            <h2>⏸️ JOGO PAUSADO</h2>
-
-                    <span class="hud-label">Nível</span>
-
-                    <span id="level" class="hud-value">1</span>            font-weight: 700;            <div class="pause-stats">
-
-                </div>
-
-                <div class="hud-item">            color: #ffd700;                <div class="stat-item">
-
-                    <span class="hud-label">Tempo</span>
-
-                    <span id="time" class="hud-value">00:00</span>            margin-bottom: 0.5rem;                    <span>Tempo decorrido:</span>
-
-                </div>
-
-                <div class="hud-item">            animation: titleGlow 2s ease-in-out infinite;                    <span id="pause-tempo">00:00</span>
-
-                    <span class="hud-label">Fio</span>
-
-                    <span id="fio" class="hud-value">OFF</span>        }                </div>
-
-                </div>
-
-                <div class="hud-item">                <div class="stat-item">
-
-                    <span class="hud-label">Minotauro</span>
-
-                    <span id="status" class="hud-value">🟢</span>        .game-subtitle {                    <span>Nível atual:</span>
-
-                </div>
-
-                <button class="btn btn-secondary" onclick="pauseGame()" style="padding: 8px 16px;">            font-size: 1.2rem;                    <span id="pause-nivel">1</span>
-
-                    ⏸️ PAUSA
-
-                </button>            color: #aaa;                </div>
-
-            </div>
-
-            margin-bottom: 2rem;            </div>
-
-            <canvas id="gameCanvas" width="800" height="600"></canvas>
-
-            font-style: italic;            <div class="pause-buttons">
-
-            <div id="message" class="message hidden">
-
-                <p id="messageText">Bem-vindo!</p>        }                <button id="btn-continuar-jogo" class="menu-btn primary">▶️ CONTINUAR</button>
-
-            </div>
-
-        </div>                <button id="btn-reiniciar-nivel" class="menu-btn secondary">🔄 REINICIAR NÍVEL</button>
-
     </div>
 
-        .menu-buttons {                <button id="btn-configuracoes-pausa" class="menu-btn secondary">⚙️ CONFIGURAÇÕES</button>
-
-    <!-- TELA DE PAUSA -->
-
-    <div id="pause" class="screen">            display: flex;                <button id="btn-menu-principal" class="menu-btn danger">🏠 MENU PRINCIPAL</button>
-
-        <div class="menu">
-
-            <h2>⏸️ JOGO PAUSADO</h2>            flex-direction: column;            </div>
-
-            <p style="margin: 2rem 0;">
-
-                Tempo: <span id="pauseTime">00:00</span><br>            gap: 1rem;        </div>
-
-                Nível: <span id="pauseLevel">1</span>
-
-            </p>            margin-bottom: 2rem;    </div>
-
-            <button class="btn btn-primary" onclick="resumeGame()">
-
-                ▶️ CONTINUAR        }
-
-            </button>
-
-            <button class="btn btn-secondary" onclick="backToMenu()">    <!-- TELA DE DERROTA -->
-
-                🏠 MENU PRINCIPAL
-
-            </button>        .menu-btn {    <div id="tela-derrota" class="overlay">
-
+    <!-- Tela de Menu -->
+    <div id="menu-screen" class="screen">
+        <div class="menu-container">
+            <div class="menu-header">
+                <div class="logo">
+                    <div class="logo-icon">🏛️</div>
+                    <h1 class="logo-title">Labirinto de Creta</h1>
+                    <p class="logo-subtitle">O Desafio do Minotauro</p>
+                </div>
+            </div>
+            <div class="menu-buttons">
+                <button id="btn-start-game" class="menu-btn primary">
+                    <span>⚔️</span>
+                    <span>Iniciar Jogo</span>
+                </button>
+                <button id="btn-help" class="menu-btn secondary">
+                    <span>❓</span>
+                    <span>Como Jogar</span>
+                </button>
+                <button id="btn-settings" class="menu-btn tertiary">
+                    <span>⚙️</span>
+                    <span>Configurações</span>
+                </button>
+            </div>
+            <div class="menu-footer">
+                <p class="controls-hint">🎮 WASD para mover • SPACE para Fio de Ariadne</p>
+                <p class="version-info">v2.1.0 • HTML5 Game</p>
+            </div>
         </div>
-
-    </div>            padding: 15px 30px;        <div class="result-container defeat">
-
-
-
-    <!-- TELA DE AJUDA -->            border: none;            <div class="result-icon">💀</div>
-
-    <div id="help" class="screen">
-
-        <div class="menu help">            border-radius: 10px;            <h2>VOCÊ FOI CAPTURADO!</h2>
-
-            <h2>❓ COMO JOGAR</h2>
-
-                        font-size: 1.1rem;            <p class="result-message">O Minotauro conseguiu te alcançar...</p>
-
-            <h3>🎯 OBJETIVO</h3>
-
-            <p>Escape do labirinto encontrando a saída verde (🚪) sem ser capturado pelo Minotauro vermelho (🐂)!</p>            font-weight: 600;            
-
-            
-
-            <h3>🕹️ CONTROLES</h3>            cursor: pointer;            <div class="stats-grid">
-
-            <p><kbd>WASD</kbd> ou <kbd>↑↓←→</kbd> - Mover Teseu</p>
-
-            <p><kbd>ESPAÇO</kbd> - Ativar/Desativar Fio de Ariadne</p>            transition: all 0.3s ease;                <div class="stat-card">
-
-            <p><kbd>ESC</kbd> - Pausar/Despausar jogo</p>
-
-                        text-transform: uppercase;                    <div class="stat-number" id="derrota-tempo">--:--</div>
-
-            <h3>🧵 FIO DE ARIADNE</h3>
-
-            <p>• Marca seu caminho com uma linha dourada</p>        }                    <div class="stat-label">Tempo Sobrevivido</div>
-
-            <p>• Te ajuda a não se perder no labirinto</p>
-
-            <p>• Ative/desative conforme necessário</p>                </div>
-
-            
-
-            <h3>🐂 MINOTAURO</h3>        .menu-btn.primary {                <div class="stat-card">
-
-            <p>🟢 Verde: Patrulhando normalmente</p>
-
-            <p>🔴 Vermelho: Te viu e está perseguindo!</p>            background: linear-gradient(135deg, #ff6b6b, #ee5a24);                    <div class="stat-number" id="derrota-passos">0</div>
-
-            
-
-            <h3>💡 DICAS</h3>            color: white;                    <div class="stat-label">Passos Dados</div>
-
-            <p>• Use as paredes para quebrar linha de visão</p>
-
-            <p>• O Minotauro nunca desiste da perseguição</p>            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);                </div>
-
-            <p>• Seja rápido mas cauteloso!</p>
-
-                    }                <div class="stat-card">
-
-            <button class="btn btn-primary" onclick="backToMenu()" style="margin-top: 2rem;">
-
-                🔙 VOLTAR AO MENU                    <div class="stat-number" id="derrota-nivel">1</div>
-
-            </button>
-
-        </div>        .menu-btn.primary:hover {                    <div class="stat-label">Nível Alcançado</div>
-
     </div>
 
-            transform: translateY(-3px);                </div>
+    <!-- Tela de Jogo -->
+    <div id="game-screen" class="screen">
+        <div class="game-hud">
+            <div class="hud-left">
+                <div class="hud-item">
+                    <span class="hud-label">Nível:</span>
+                    <span class="hud-value" id="hud-level">1</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Tempo:</span>
+                    <span class="hud-value" id="hud-time">0s</span>
+                </div>
+            </div>
+            <div class="hud-center">
+                <h1 class="game-title">🏛️ Labirinto de Creta</h1>
+            </div>
+            <div class="hud-right">
+                <div class="hud-item">
+                    <span class="hud-label">Fio:</span>
+                    <span class="hud-value" id="hud-thread">INATIVO</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Minotauro:</span>
+                    <span class="hud-value" id="hud-minotaur">PATRULHA</span>
+                </div>
+            </div>
+        </div>
+        <div class="game-area">
+            <canvas id="game-canvas" width="600" height="450"></canvas>
+        </div>
+    </div>
+
+    <!-- Overlay de Game Over -->
+    <div id="gameover-overlay" class="overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">💀 Capturado!</h2>
+            </div>
+            <div class="modal-content">
+                <p>O Minotauro te capturou! Tente novamente.</p>
+            </div>
+            <div class="modal-actions">
+                <button id="btn-retry" class="modal-btn primary">🔄 Tentar Novamente</button>
+                <button id="btn-menu-from-gameover" class="modal-btn secondary">🏠 Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay de Vitória -->
+    <div id="victory-overlay" class="overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">🎉 Nível Concluído!</h2>
+            </div>
+            <div class="modal-content">
+                <p>Parabéns! Você escapou do labirinto!</p>
+                <div class="victory-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Tempo:</span>
+                        <span class="stat-value" id="victory-time">0s</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Nível:</span>
+                        <span class="stat-value" id="victory-level">1</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="btn-next-level" class="modal-btn primary">➡️ Próximo Nível</button>
+                <button id="btn-menu-from-victory" class="modal-btn secondary">🏠 Menu</button>
+            </div>
+        </div>
+    </div>
 
     <script>
-
-        // ===========================            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.6);            </div>
-
-        // SISTEMA COMPLETO EM UM SÓ ARQUIVO
-
-        // ===========================            animation: buttonHover 0.6s ease;            
-
-
-
-        // Estado do jogo        }            <div class="result-buttons">
-
-        const game = {
-
-            level: 1,                <button id="btn-tentar-novamente" class="menu-btn primary">🔄 TENTAR NOVAMENTE</button>
-
-            time: 0,
-
-            state: 'menu',        .menu-btn.secondary {                <button id="btn-menu-derrota" class="menu-btn secondary">🏠 MENU PRINCIPAL</button>
-
-            maze: null,
-
-            player: null,            background: rgba(255, 255, 255, 0.1);            </div>
-
-            minotaur: null,
-
-            fioActive: false,            color: #fff;        </div>
-
-            seed: Date.now()
-
-        };            border: 2px solid rgba(255, 255, 255, 0.2);    </div>
-
-
-
-        // Canvas        }
-
-        let canvas, ctx;
-
-        let lastTime = 0;    <!-- TELA DE VITÓRIA -->
-
-        let animationId = null;
-
-        .menu-btn.secondary:hover {    <div id="tela-vitoria" class="overlay">
-
-        // Input
-
-        const input = {            background: rgba(255, 255, 255, 0.2);        <div class="result-container victory">
-
-            up: false, down: false, left: false, right: false,
-
-            space: false, spacePressed: false            border-color: #ffd700;            <div class="result-icon">🏆</div>
-
-        };
-
-            transform: translateY(-2px);            <h2>NÍVEL COMPLETADO!</h2>
-
-        // ===========================
-
-        // GERADOR DE LABIRINTO        }            <p class="result-message">Você escapou do Minotauro com sucesso!</p>
-
-        // ===========================
-
-        class Maze {            
-
-            constructor(size, seed = 12345) {
-
-                this.size = Math.max(15, Math.min(size || 21, 31));        .version-info {            <div class="stats-grid">
-
-                if (this.size % 2 === 0) this.size++;
-
-                            color: #666;                <div class="stat-card">
-
-                this.seed = seed;
-
-                this.rng = this.seededRandom(seed);            font-size: 0.9rem;                    <div class="stat-number" id="vitoria-tempo">--:--</div>
-
-                this.grid = Array(this.size).fill().map(() => Array(this.size).fill(1));
-
-                        }                    <div class="stat-label">Tempo Completado</div>
-
-                this.generate();
-
-                this.findStartEnd();                </div>
-
+        // JOGO LABIRINTO DE CRETA - VERSÃO SIMPLIFICADA
+        class LabirintoDeCreta {
+            constructor() {
+                this.canvas = null;
+                this.ctx = null;
+                this.gameState = 'menu';
+                this.level = 1;
+                this.startTime = 0;
+                this.gameTime = 0;
+                this.maze = null;
+                this.player = { x: 1.5, y: 1.5, r: 0.3, trail: [] };
+                this.minotaur = { x: 1.5, y: 1.5, state: 'PATROL', vx: 0, vy: 0, lastDir: 0 };
+                this.keys = new Set();
+                this.threadActive = false;
+                this.cellSize = 30;
+                this.lastTime = 0;
+                this.gameLoop = null;
             }
 
-                    /* GAME CONTAINER */                <div class="stat-card">
-
-            seededRandom(seed) {
-
-                let state = seed;        #game-container {                    <div class="stat-number" id="vitoria-eficiencia">0%</div>
-
-                return () => {
-
-                    state = (state * 1664525 + 1013904223) % Math.pow(2, 32);            position: relative;                    <div class="stat-label">Eficiência</div>
-
-                    return state / Math.pow(2, 32);
-
-                };            width: 100%;                </div>
-
+            init() {
+                this.setupEventListeners();
+                this.showLoadingProgress();
             }
 
-                        height: 100vh;                <div class="stat-card">
-
-            generate() {
-
-                const stack = [];            display: flex;                    <div class="stat-number" id="vitoria-pontuacao">0</div>
-
-                let current = { x: 1, y: 1 };
-
-                this.grid[1][1] = 0;            flex-direction: column;                    <div class="stat-label">Pontuação</div>
-
-                
-
-                while (true) {            align-items: center;                </div>
-
-                    const neighbors = this.getUnvisitedNeighbors(current);
-
-                                justify-content: center;            </div>
-
-                    if (neighbors.length > 0) {
-
-                        const next = neighbors[Math.floor(this.rng() * neighbors.length)];        }            
-
-                        stack.push(current);
-
-                                    <div class="result-buttons">
-
-                        const wallX = current.x + (next.x - current.x) / 2;
-
-                        const wallY = current.y + (next.y - current.y) / 2;        .game-hud {                <button id="btn-proximo-nivel" class="menu-btn primary">➡️ PRÓXIMO NÍVEL</button>
-
-                        
-
-                        this.grid[wallY][wallX] = 0;            position: fixed;                <button id="btn-menu-vitoria" class="menu-btn secondary">🏠 MENU PRINCIPAL</button>
-
-                        this.grid[next.y][next.x] = 0;
-
-                                    top: 0;            </div>
-
-                        current = next;
-
-                    } else if (stack.length > 0) {            left: 0;        </div>
-
-                        current = stack.pop();
-
-                    } else {            right: 0;    </div>
-
-                        break;
-
-                    }            background: rgba(0, 0, 0, 0.8);
-
-                }
-
-            }            padding: 1rem;    <!-- TELA DE CONFIGURAÇÕES -->
-
-            
-
-            getUnvisitedNeighbors(cell) {            display: flex;    <div id="tela-configuracoes" class="overlay">
-
-                const neighbors = [];
-
-                const directions = [[0, -2], [2, 0], [0, 2], [-2, 0]];            justify-content: space-between;        <div class="config-container">
-
-                
-
-                for (const [dx, dy] of directions) {            align-items: center;            <h2>⚙️ CONFIGURAÇÕES</h2>
-
-                    const nx = cell.x + dx;
-
-                    const ny = cell.y + dy;            z-index: 10;            
-
-                    
-
-                    if (nx > 0 && nx < this.size - 1 && ny > 0 && ny < this.size - 1 && this.grid[ny][nx] === 1) {            border-bottom: 2px solid rgba(255, 215, 0, 0.3);            <div class="config-section">
-
-                        neighbors.push({ x: nx, y: ny });
-
-                    }        }                <h3>🎮 Jogabilidade</h3>
-
-                }
-
-                                <div class="config-item">
-
-                return neighbors;
-
-            }        .hud-section {                    <label>Dificuldade:</label>
-
-            
-
-            findStartEnd() {            display: flex;                    <select id="config-dificuldade">
-
-                this.start = { x: 1, y: 1 };
-
-                this.exit = { x: this.size - 2, y: this.size - 2 };            gap: 2rem;                        <option value="facil">😊 Fácil</option>
-
-                this.minotaurStart = { x: Math.floor(this.size / 2), y: Math.floor(this.size / 2) };
-
-            }            align-items: center;                        <option value="normal" selected>😐 Normal</option>
-
-            
-
-            get(x, y) {        }                        <option value="dificil">😰 Difícil</option>
-
-                if (x < 0 || x >= this.size || y < 0 || y >= this.size) return 1;
-
-                return this.grid[y][x];                        <option value="pesadelo">💀 Pesadelo</option>
-
-            }
-
-                    .hud-item {                    </select>
-
-            isWalkable(x, y) {
-
-                return this.get(Math.floor(x), Math.floor(y)) === 0;            display: flex;                </div>
-
-            }
-
-        }            flex-direction: column;                
-
-
-
-        // ===========================            align-items: center;                <div class="config-item">
-
-        // JOGADOR
-
-        // ===========================            gap: 0.2rem;                    <label>Semente do Mapa:</label>
-
-        class Player {
-
-            constructor(startCell) {        }                    <div class="seed-controls">
-
-                this.x = startCell.x + 0.5;
-
-                this.y = startCell.y + 0.5;                        <input type="number" id="config-semente" placeholder="Deixe vazio para aleatório">
-
-                this.speed = 4.0;
-
-                this.trail = [];        .hud-label {                        <button id="btn-gerar-semente" class="small-btn">🎲</button>
-
-                this.lastMoveTime = 0;
-
-            }            font-size: 0.8rem;                    </div>
-
-            
-
-            update(deltaTime, input, maze) {            color: #aaa;                </div>
-
-                const moveSpeed = this.speed * deltaTime / 1000;
-
-                let newX = this.x;            text-transform: uppercase;            </div>
-
-                let newY = this.y;
-
-                let moved = false;        }            
-
-                
-
-                if (input.up) { newY -= moveSpeed; moved = true; }            <div class="config-section">
-
-                if (input.down) { newY += moveSpeed; moved = true; }
-
-                if (input.left) { newX -= moveSpeed; moved = true; }        .hud-value {                <h3>🔊 Áudio</h3>
-
-                if (input.right) { newX += moveSpeed; moved = true; }
-
-                            font-size: 1.2rem;                <div class="config-item">
-
-                if (maze.isWalkable(newX, this.y)) this.x = newX;
-
-                if (maze.isWalkable(this.x, newY)) this.y = newY;            font-weight: 600;                    <label>Volume Geral:</label>
-
-                
-
-                if (game.fioActive && moved) {            color: #ffd700;                    <input type="range" id="config-volume" min="0" max="100" value="70">
-
-                    const now = Date.now();
-
-                    if (now - this.lastMoveTime > 100) {        }                    <span id="volume-display">70%</span>
-
-                        this.trail.push({ x: this.x, y: this.y });
-
-                        this.lastMoveTime = now;                </div>
-
-                        if (this.trail.length > 500) this.trail.shift();
-
-                    }        .hud-btn {                
-
-                }
-
-            }            padding: 8px 16px;                <div class="config-item">
-
-        }
-
-            border: none;                    <label>
-
-        // ===========================
-
-        // MINOTAURO            border-radius: 6px;                        <input type="checkbox" id="config-som-passos" checked>
-
-        // ===========================
-
-        class Minotaur {            background: rgba(255, 107, 107, 0.8);                        Sons de passos
-
-            constructor(startCell) {
-
-                this.x = startCell.x + 0.5;            color: white;                    </label>
-
-                this.y = startCell.y + 0.5;
-
-                this.speed = 2.0;            cursor: pointer;                </div>
-
-                this.chaseSpeed = 3.5;
-
-                this.state = 'patrol';            transition: all 0.3s ease;            </div>
-
-                this.sightRange = 8;
-
-                this.lastPlayerPos = null;        }            
-
-                this.patrolTarget = null;
-
-                this.chaseTime = 0;            <div class="config-section">
-
-            }
-
-                    .hud-btn:hover {                <h3>🎨 Visual</h3>
-
-            update(deltaTime, player, maze) {
-
-                const dt = deltaTime / 1000;            background: #ff6b6b;                <div class="config-item">
-
-                
-
-                if (this.canSeePlayer(player, maze)) {            transform: scale(1.05);                    <label>Qualidade Gráfica:</label>
-
-                    this.state = 'chase';
-
-                    this.lastPlayerPos = { x: player.x, y: player.y };        }                    <select id="config-qualidade">
-
-                    this.chaseTime = 5000;
-
-                } else if (this.chaseTime > 0) {                        <option value="baixa">📱 Baixa</option>
-
-                    this.chaseTime -= deltaTime;
-
-                    if (this.chaseTime <= 0) this.state = 'patrol';        #gameCanvas {                        <option value="media" selected>💻 Média</option>
-
-                }
-
-                            border: 3px solid rgba(255, 215, 0, 0.3);                        <option value="alta">🖥️ Alta</option>
-
-                if (this.state === 'chase' && this.lastPlayerPos) {
-
-                    this.moveTowards(this.lastPlayerPos, this.chaseSpeed * dt, maze);            border-radius: 10px;                    </select>
-
-                } else {
-
-                    this.patrol(dt, maze);            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);                </div>
-
-                }
-
-                        }                
-
-                this.updateStatus();
-
-            }                <div class="config-item">
-
-            
-
-            canSeePlayer(player, maze) {        .message-overlay {                    <label>
-
-                const dx = player.x - this.x;
-
-                const dy = player.y - this.y;            position: fixed;                        <input type="checkbox" id="config-animacoes" checked>
-
-                const distance = Math.sqrt(dx * dx + dy * dy);
-
-                            top: 50%;                        Animações suaves
-
-                if (distance > this.sightRange) return false;
-
-                            left: 50%;                    </label>
-
-                const steps = Math.ceil(distance * 2);
-
-                for (let i = 0; i <= steps; i++) {            transform: translate(-50%, -50%);                </div>
-
-                    const checkX = this.x + (dx * i / steps);
-
-                    const checkY = this.y + (dy * i / steps);            background: rgba(0, 0, 0, 0.9);            </div>
-
-                    
-
-                    if (maze.get(Math.floor(checkX), Math.floor(checkY)) === 1) {            padding: 2rem;            
-
-                        return false;
-
-                    }            border-radius: 10px;            <div class="config-buttons">
-
-                }
-
-                            border: 2px solid #ffd700;                <button id="btn-aplicar-config" class="menu-btn primary">✅ APLICAR</button>
-
-                return true;
-
-            }            z-index: 1000;                <button id="btn-resetar-config" class="menu-btn secondary">🔄 RESETAR</button>
-
-            
-
-            moveTowards(target, speed, maze) {            text-align: center;                <button id="btn-fechar-config" class="menu-btn secondary">❌ FECHAR</button>
-
-                const dx = target.x - this.x;
-
-                const dy = target.y - this.y;            animation: fadeInUp 0.5s ease;            </div>
-
-                const distance = Math.sqrt(dx * dx + dy * dy);
-
-                        }        </div>
-
-                if (distance > 0.1) {
-
-                    const moveX = (dx / distance) * speed;    </div>
-
-                    const moveY = (dy / distance) * speed;
-
-                            .message-overlay.hidden {
-
-                    if (maze.isWalkable(this.x + moveX, this.y)) this.x += moveX;
-
-                    if (maze.isWalkable(this.x, this.y + moveY)) this.y += moveY;            display: none;    <!-- TELA DE CRÉDITOS -->
-
-                }
-
-            }        }    <div id="tela-creditos" class="overlay">
-
-            
-
-            patrol(dt, maze) {        <div class="credits-container">
-
-                if (!this.patrolTarget || this.reachedTarget()) {
-
-                    this.pickNewPatrolTarget(maze);        /* PAUSE SCREEN */            <h2>👥 CRÉDITOS</h2>
-
-                }
-
-                        .pause-container {            
-
-                if (this.patrolTarget) {
-
-                    this.moveTowards(this.patrolTarget, this.speed * dt, maze);            text-align: center;            <div class="credits-section">
-
-                }
-
-            }            padding: 3rem;                <h3>🎮 Desenvolvimento</h3>
-
-            
-
-            pickNewPatrolTarget(maze) {            background: rgba(26, 26, 46, 0.95);                <p><strong>Programação:</strong> GitHub Copilot & Assistant</p>
-
-                for (let i = 0; i < 50; i++) {
-
-                    const x = Math.random() * maze.size;            border-radius: 20px;                <p><strong>Game Design:</strong> Sistema de IA Avançada</p>
-
-                    const y = Math.random() * maze.size;
-
-                                border: 2px solid rgba(255, 215, 0, 0.3);                <p><strong>Arte & Interface:</strong> Design Responsivo Moderno</p>
-
-                    if (maze.isWalkable(x, y)) {
-
-                        this.patrolTarget = { x, y };            min-width: 400px;            </div>
-
-                        break;
-
-                    }        }            
-
-                }
-
-            }            <div class="credits-section">
-
-            
-
-            reachedTarget() {        .pause-stats {                <h3>🏛️ Inspiração Mitológica</h3>
-
-                if (!this.patrolTarget) return true;
-
-                const dx = this.patrolTarget.x - this.x;            margin: 2rem 0;                <p><strong>Baseado na lenda grega do:</strong></p>
-
-                const dy = this.patrolTarget.y - this.y;
-
-                return Math.sqrt(dx * dx + dy * dy) < 0.5;            display: flex;                <p>Labirinto de Creta e o Minotauro</p>
-
-            }
-
-                        justify-content: space-around;                <p><strong>Personagens:</strong> Teseu, Minotauro, Ariadne</p>
-
-            updateStatus() {
-
-                const statusEl = document.getElementById('status');        }            </div>
-
-                if (statusEl) {
-
-                    statusEl.textContent = this.state === 'chase' ? '🔴' : '🟢';            
-
-                }
-
-            }        .stat-item {            <div class="credits-section">
-
-        }
-
-            display: flex;                <h3>🔧 Tecnologias</h3>
-
-        // ===========================
-
-        // INPUT            flex-direction: column;                <p><strong>Engine:</strong> JavaScript Vanilla + Canvas</p>
-
-        // ===========================
-
-        document.addEventListener('keydown', (e) => {            align-items: center;                <p><strong>IA:</strong> Sistema de Pathfinding A*</p>
-
-            switch(e.code) {
-
-                case 'KeyW': case 'ArrowUp': input.up = true; break;            gap: 0.5rem;                <p><strong>Interface:</strong> CSS3 + Animações</p>
-
-                case 'KeyS': case 'ArrowDown': input.down = true; break;
-
-                case 'KeyA': case 'ArrowLeft': input.left = true; break;        }            </div>
-
-                case 'KeyD': case 'ArrowRight': input.right = true; break;
-
-                case 'Space':            
-
-                    e.preventDefault();
-
-                    if (!input.spacePressed) {        .pause-buttons {            <div class="credits-section">
-
-                        input.space = true;
-
-                        input.spacePressed = true;            display: flex;                <h3>🎵 Reconhecimentos</h3>
-
+            showLoadingProgress() {
+                let progress = 0;
+                const messages = [
+                    'Carregando recursos...',
+                    'Configurando labirinto...',
+                    'Preparando Minotauro...',
+                    'Afiando espada de Teseu...',
+                    'Pronto para a aventura!'
+                ];
+
+                const interval = setInterval(() => {
+                    progress += 20;
+                    document.getElementById('loading-progress').style.width = `${progress}%`;
+                    document.getElementById('loading-text').textContent = messages[Math.floor(progress / 20) - 1] || messages[0];
+
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        setTimeout(() => this.showScreen('menu'), 1000);
                     }
+                }, 500);
+            }
 
-                    break;            flex-direction: column;                <p>Algoritmos de geração procedural de labirintos</p>
+            showScreen(screenName) {
+                document.querySelectorAll('.screen').forEach(screen => {
+                    screen.classList.remove('active');
+                });
+                document.getElementById(`${screenName}-screen`).classList.add('active');
+                
+                if (screenName === 'game' && !this.canvas) {
+                    this.initGame();
+                }
+            }
 
-                case 'Escape':
+            showOverlay(overlayName) {
+                document.getElementById(`${overlayName}-overlay`).style.display = 'flex';
+            }
 
-                    e.preventDefault();            gap: 1rem;                <p>Sistema de visão e perseguição por IA</p>
+            hideOverlay(overlayName) {
+                document.getElementById(`${overlayName}-overlay`).style.display = 'none';
+            }
 
-                    if (game.state === 'playing') {
+            setupEventListeners() {
+                // Menu buttons
+                document.getElementById('btn-start-game').addEventListener('click', () => {
+                    this.startNewGame();
+                });
 
-                        pauseGame();        }                <p>Interface moderna e responsiva</p>
+                document.getElementById('btn-help').addEventListener('click', () => {
+                    this.showHelp();
+                });
 
-                    } else if (game.state === 'paused') {
+                document.getElementById('btn-settings').addEventListener('click', () => {
+                    this.showSettings();
+                });
 
-                        resumeGame();            </div>
+                // Game over buttons
+                document.getElementById('btn-retry').addEventListener('click', () => {
+                    this.hideOverlay('gameover');
+                    this.restartLevel();
+                });
 
+                document.getElementById('btn-menu-from-gameover').addEventListener('click', () => {
+                    this.hideOverlay('gameover');
+                    this.showScreen('menu');
+                    this.stopGame();
+                });
+
+                // Victory buttons
+                document.getElementById('btn-next-level').addEventListener('click', () => {
+                    this.hideOverlay('victory');
+                    this.nextLevel();
+                });
+
+                document.getElementById('btn-menu-from-victory').addEventListener('click', () => {
+                    this.hideOverlay('victory');
+                    this.showScreen('menu');
+                    this.stopGame();
+                });
+
+                // Keyboard controls
+                document.addEventListener('keydown', (e) => {
+                    this.keys.add(e.code);
+                    if (e.code === 'Escape' && this.gameState === 'playing') {
+                        this.showScreen('menu');
+                        this.stopGame();
                     }
+                });
 
-                    break;        .menu-btn.danger {            
-
+                document.addEventListener('keyup', (e) => {
+                    this.keys.delete(e.code);
+                });
             }
 
-        });            background: linear-gradient(135deg, #e74c3c, #c0392b);            <div class="credits-buttons">
-
-
-
-        document.addEventListener('keyup', (e) => {            color: white;                <button id="btn-voltar-creditos" class="menu-btn primary">🔙 VOLTAR</button>
-
-            switch(e.code) {
-
-                case 'KeyW': case 'ArrowUp': input.up = false; break;        }            </div>
-
-                case 'KeyS': case 'ArrowDown': input.down = false; break;
-
-                case 'KeyA': case 'ArrowLeft': input.left = false; break;        </div>
-
-                case 'KeyD': case 'ArrowRight': input.right = false; break;
-
-                case 'Space': input.spacePressed = false; break;        .menu-btn.danger:hover {    </div>
-
+            initGame() {
+                this.canvas = document.getElementById('game-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                
+                // Ajustar canvas para responsividade
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
             }
 
-        });            background: linear-gradient(135deg, #c0392b, #a93226);
-
-
-
-        // ===========================            transform: translateY(-2px);    <!-- TELA DE AJUDA -->
-
-        // RENDERIZAÇÃO
-
-        // ===========================        }    <div id="tela-ajuda" class="overlay">
-
-        function initRenderer() {
-
-            canvas = document.getElementById('gameCanvas');        <div class="help-container">
-
-            if (!canvas) return false;
-
-            ctx = canvas.getContext('2d');        /* RESPONSIVO */            <h2>❓ COMO JOGAR</h2>
-
-            return true;
-
-        }        @media (max-width: 768px) {            
-
-
-
-        function render() {            .game-title {            <div class="help-section">
-
-            if (!ctx || !game.maze) return;
-
-                            font-size: 2rem;                <h3>🎯 OBJETIVO</h3>
-
-            ctx.fillStyle = '#000';
-
-            ctx.fillRect(0, 0, canvas.width, canvas.height);            }                <p>Escape do labirinto encontrando a saída (🟩) sem ser capturado pelo Minotauro (🐂)!</p>
-
-            
-
-            const cellSize = Math.min(canvas.width / game.maze.size, canvas.height / game.maze.size);                        </div>
-
-            const offsetX = (canvas.width - cellSize * game.maze.size) / 2;
-
-            const offsetY = (canvas.height - cellSize * game.maze.size) / 2;            .menu-container {            
-
-            
-
-            // Labirinto                margin: 1rem;            <div class="help-section">
-
-            for (let y = 0; y < game.maze.size; y++) {
-
-                for (let x = 0; x < game.maze.size; x++) {                padding: 1.5rem;                <h3>🕹️ CONTROLES</h3>
-
-                    const screenX = offsetX + x * cellSize;
-
-                    const screenY = offsetY + y * cellSize;            }                <div class="controls-grid">
-
-                    
-
-                    if (game.maze.get(x, y) === 1) {                                <div class="control-item">
-
-                        ctx.fillStyle = '#444';
-
-                        ctx.fillRect(screenX, screenY, cellSize, cellSize);            #gameCanvas {                        <kbd>WASD</kbd> ou <kbd>↑↓←→</kbd>
-
-                    } else {
-
-                        ctx.fillStyle = '#222';                width: 90vw;                        <span>Mover Teseu</span>
-
-                        ctx.fillRect(screenX, screenY, cellSize, cellSize);
-
-                    }                height: auto;                    </div>
-
+            resizeCanvas() {
+                const container = this.canvas.parentElement;
+                const maxWidth = container.clientWidth - 40;
+                const maxHeight = container.clientHeight - 40;
+                
+                const aspectRatio = 800 / 600;
+                let width = maxWidth;
+                let height = width / aspectRatio;
+                
+                if (height > maxHeight) {
+                    height = maxHeight;
+                    width = height * aspectRatio;
                 }
-
-            }            }                    <div class="control-item">
-
-            
-
-            // Saída                                    <kbd>ESPAÇO</kbd>
-
-            const exitX = offsetX + game.maze.exit.x * cellSize;
-
-            const exitY = offsetY + game.maze.exit.y * cellSize;            .hud-section {                        <span>Ativar/Desativar Fio de Ariadne</span>
-
-            ctx.fillStyle = '#4CAF50';
-
-            ctx.fillRect(exitX, exitY, cellSize, cellSize);                gap: 1rem;                    </div>
-
-            
-
-            // Trail do fio            }                    <div class="control-item">
-
-            if (game.fioActive && game.player.trail.length > 1) {
-
-                ctx.strokeStyle = '#FFD700';        }                        <kbd>ESC</kbd>
-
-                ctx.lineWidth = 3;
-
-                ctx.beginPath();                        <span>Pausar/Despausar</span>
-
                 
+                this.canvas.style.width = `${width}px`;
+                this.canvas.style.height = `${height}px`;
+            }
 
-                for (let i = 0; i < game.player.trail.length; i++) {        /* Fio de Ariadne - Status */                    </div>
+            startNewGame() {
+                this.level = 1;
+                this.showScreen('game');
+                this.startLevel();
+            }
 
-                    const point = game.player.trail[i];
-
-                    const screenX = offsetX + point.x * cellSize;        .fio-status {                </div>
-
-                    const screenY = offsetY + point.y * cellSize;
-
-                                color: #ffd700;            </div>
-
-                    if (i === 0) ctx.moveTo(screenX, screenY);
-
-                    else ctx.lineTo(screenX, screenY);            font-weight: bold;            
-
+            startLevel() {
+                this.generateMaze();
+                this.resetPlayer();
+                this.resetMinotaur();
+                this.startTime = Date.now();
+                this.gameTime = 0;
+                this.gameState = 'playing';
+                
+                if (this.gameLoop) {
+                    cancelAnimationFrame(this.gameLoop);
                 }
-
-                ctx.stroke();        }            <div class="help-section">
-
-            }
-
-                            <h3>🧵 FIO DE ARIADNE</h3>
-
-            // Jogador
-
-            if (game.player) {        .fio-status:before {                <p>• Marca seu caminho com pontos dourados</p>
-
-                const playerX = offsetX + game.player.x * cellSize;
-
-                const playerY = offsetY + game.player.y * cellSize;            content: "🧵 ";                <p>• Te ajuda a não se perder no labirinto</p>
-
+                this.gameLoop = requestAnimationFrame((time) => this.update(time));
                 
-
-                ctx.fillStyle = '#2196F3';        }                <p>• Use com sabedoria para escapar!</p>
-
-                ctx.beginPath();
-
-                ctx.arc(playerX, playerY, cellSize * 0.3, 0, Math.PI * 2);            </div>
-
-                ctx.fill();
-
-            }        /* Minotaur Status */            
-
-            
-
-            // Minotauro        .minotaur-status {            <div class="help-section">
-
-            if (game.minotaur) {
-
-                const minotaurX = offsetX + game.minotaur.x * cellSize;            font-size: 1.5rem;                <h3>🐂 O MINOTAURO</h3>
-
-                const minotaurY = offsetY + game.minotaur.y * cellSize;
-
-                            transition: all 0.3s ease;                <p>• Criatura implacável que patrulha o labirinto</p>
-
-                ctx.fillStyle = game.minotaur.state === 'chase' ? '#F44336' : '#FF5722';
-
-                ctx.beginPath();        }                <p>• <span style="color: #ff4444;">Vermelho escuro:</span> Estado normal de patrulha</p>
-
-                ctx.arc(minotaurX, minotaurY, cellSize * 0.35, 0, Math.PI * 2);
-
-                ctx.fill();                <p>• <span style="color: #ff0000;">Vermelho brilhante:</span> Te viu e está perseguindo!</p>
-
+                console.log(`🎮 Nível ${this.level} iniciado!`);
             }
 
-        }        .minotaur-status.patrol { color: #4CAF50; }                <p>• Possui visão limitada - use isso a seu favor!</p>
-
-
-
-        // ===========================        .minotaur-status.alert { color: #FFC107; }            </div>
-
-        // LÓGICA DO JOGO
-
-        // ===========================        .minotaur-status.chase { color: #F44336; animation: pulse 1s infinite; }            
-
-        function startLevel(level) {
-
-            console.log(`🏛️ Nível ${level}`);            <div class="help-section">
-
-            
-
-            game.level = level;        @keyframes pulse {                <h3>⚡ DICAS DE SOBREVIVÊNCIA</h3>
-
-            game.time = 0;
-
-            game.state = 'playing';            0% { transform: scale(1); }                <p>🏃‍♂️ <strong>Seja rápido mas cauteloso</strong> - Velocidade é vida!</p>
-
-            game.seed = Date.now() + level;
-
-                        50% { transform: scale(1.2); }                <p>🧱 <strong>Use as paredes</strong> - Quebrem a linha de visão</p>
-
-            const size = Math.min(15 + (level - 1) * 2, 31);
-
-            game.maze = new Maze(size, game.seed);            100% { transform: scale(1); }                <p>👀 <strong>Observe o estado do Minotauro</strong> - A cor indica o perigo</p>
-
-            game.player = new Player(game.maze.start);
-
-            game.minotaur = new Minotaur(game.maze.minotaurStart);        }                <p>🧵 <strong>Fio de Ariadne</strong> - Seu melhor amigo em labirintos grandes</p>
-
-            
-
-            updateHUD();    </style>                <p>🎯 <strong>Conheça a saída</strong> - Sempre saiba onde está seu objetivo</p>
-
-            showMessage('Encontre a saída verde sem ser capturado!');
-
-        }</head>            </div>
-
-
-
-        function updateGame(deltaTime) {<body>            
-
-            if (game.state !== 'playing') return;
-
-                <!-- MENU PRINCIPAL -->            <div class="help-buttons">
-
-            game.time += deltaTime;
-
-                <div id="tela-menu" class="overlay active">                <button id="btn-voltar-ajuda" class="menu-btn primary">🔙 VOLTAR</button>
-
-            if (input.space) {
-
-                game.fioActive = !game.fioActive;        <div class="menu-container">                <button id="btn-iniciar-tutorial" class="menu-btn secondary">🎮 COMEÇAR A JOGAR</button>
-
-                console.log(`🧵 Fio: ${game.fioActive ? 'ON' : 'OFF'}`);
-
-                input.space = false;            <div class="logo-section">            </div>
-
-            }
-
-                            <h1 class="game-title">🏛️ LABIRINTO DE CRETA</h1>        </div>
-
-            if (game.player) game.player.update(deltaTime, input, game.maze);
-
-            if (game.minotaur) game.minotaur.update(deltaTime, game.player, game.maze);                <p class="game-subtitle">O Desafio do Minotauro</p>    </div>
-
-            
-
-            checkCollisions();            </div>
-
-            updateHUD();
-
-        }                <!-- SCRIPTS -->
-
-
-
-        function checkCollisions() {            <div class="menu-buttons">    <script src="mazeGenerator.js"></script>
-
-            if (!game.player || !game.minotaur) return;
-
-                            <button id="btn-iniciar" class="menu-btn primary">    <script src="MinotaurAI.js"></script>
-
-            const playerCell = {
-
-                x: Math.floor(game.player.x),                    🎮 INICIAR JOGO    <script src="renderer.js"></script>
-
-                y: Math.floor(game.player.y)
-
-            };                </button>    <script src="main.js"></script>
-
-            
-
-            if (playerCell.x === game.maze.exit.x && playerCell.y === game.maze.exit.y) {                <button id="btn-ajuda" class="menu-btn secondary">    <script src="estados.js"></script>
-
-                game.state = 'won';
-
-                showMessage(`🏆 Nível ${game.level} completo!`);                    ❓ COMO JOGAR    <script src="controles.js"></script>
-
-                setTimeout(() => startLevel(game.level + 1), 3000);
-
-                return;                </button>    <script src="game.js"></script>
-
-            }
-
-                        </div>    
-
-            const dx = game.player.x - game.minotaur.x;
-
-            const dy = game.player.y - game.minotaur.y;                <script>
-
-            const distance = Math.sqrt(dx * dx + dy * dy);
-
-                        <div class="version-info">        // Inicialização
-
-            if (distance < 0.6) {
-
-                game.state = 'lost';                <span>Versão Única - Sistema Integrado</span>        console.log('🏛️ Iniciando Labirinto de Creta v2.0');
-
-                showMessage('💀 Capturado! Reiniciando...');
-
-                setTimeout(() => startLevel(game.level), 2000);            </div>        
-
-            }
-
-        }        </div>        // Verificar se todos os módulos carregaram
-
-
-
-        function updateHUD() {    </div>        if (typeof mudarEstado === 'function') {
-
-            document.getElementById('level').textContent = game.level;
-
-            document.getElementById('time').textContent = formatTime(game.time);            console.log('✅ Sistema de estados carregado');
-
-            document.getElementById('fio').textContent = game.fioActive ? 'ON' : 'OFF';
-
-        }    <!-- TELA DO JOGO -->            mudarEstado('MENU');
-
-
-
-        function formatTime(ms) {    <div id="tela-jogo" class="overlay">        } else {
-
-            const seconds = Math.floor(ms / 1000);
-
-            const minutes = Math.floor(seconds / 60);        <div id="game-container">            console.log('⚠️ Sistema de estados não encontrado, usando fallback');
-
-            const secs = seconds % 60;
-
-            return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;            <div class="game-hud">        }
-
-        }
-
-                <div class="hud-section">    </script>
-
-        function showMessage(text) {
-
-            const messageEl = document.getElementById('message');                    <div class="hud-item"></body>
-
-            const textEl = document.getElementById('messageText');
-
-                                    <span class="hud-label">Nível</span></html>
-
-            if (messageEl && textEl) {                        <span id="level" class="hud-value">1</span>
-
-                textEl.textContent = text;                    </div>
-
-                messageEl.classList.remove('hidden');                    <div class="hud-item">
-
-                setTimeout(() => messageEl.classList.add('hidden'), 3000);                        <span class="hud-label">Tempo</span>
-
-            }                        <span id="time" class="hud-value">00:00</span>
-
-        }                    </div>
-
-                </div>
-
-        // ===========================                
-
-        // CONTROLE DE TELAS                <div class="hud-section">
-
-        // ===========================                    <button id="btn-pausa" class="hud-btn">⏸️ PAUSA</button>
-
-        function showScreen(screenId) {                </div>
-
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));                
-
-            document.getElementById(screenId).classList.add('active');                <div class="hud-section">
-
-        }                    <div class="hud-item">
-
-                        <span class="hud-label">Fio</span>
-
-        function startGame() {                        <span id="fio" class="hud-value fio-status">OFF</span>
-
-            console.log('🎮 Iniciando jogo...');                    </div>
-
-                                <div class="hud-item">
-
-            if (!initRenderer()) {                        <span class="hud-label">Minotauro</span>
-
-                alert('❌ Erro no canvas!');                        <span id="minotaur-status" class="hud-value minotaur-status patrol">🟢</span>
-
-                return;                    </div>
-
-            }                </div>
-
-                        </div>
-
-            showScreen('game');
-
-            startLevel(1);            <canvas id="gameCanvas" width="800" height="600"></canvas>
-
-            
-
-            if (!animationId) gameLoop(0);            <div id="game-message" class="message-overlay hidden">
-
-        }                <p id="message-text">Bem-vindo ao Labirinto!</p>
-
-            </div>
-
-        function pauseGame() {        </div>
-
-            console.log('⏸️ Pausado');    </div>
-
-            game.state = 'paused';
-
-                <!-- TELA DE PAUSA -->
-
-            document.getElementById('pauseTime').textContent = formatTime(game.time);    <div id="tela-pausa" class="overlay">
-
-            document.getElementById('pauseLevel').textContent = game.level;        <div class="pause-container">
-
-                        <h2>⏸️ JOGO PAUSADO</h2>
-
-            showScreen('pause');            <div class="pause-stats">
-
-        }                <div class="stat-item">
-
-                    <span>Tempo:</span>
-
-        function resumeGame() {                    <span id="pause-tempo">00:00</span>
-
-            console.log('▶️ Retomado');                </div>
-
-            game.state = 'playing';                <div class="stat-item">
-
-            showScreen('game');                    <span>Nível:</span>
-
-        }                    <span id="pause-nivel">1</span>
-
-                </div>
-
-        function backToMenu() {            </div>
-
-            if (animationId) {            <div class="pause-buttons">
-
-                cancelAnimationFrame(animationId);                <button id="btn-continuar-jogo" class="menu-btn primary">▶️ CONTINUAR</button>
-
-                animationId = null;                <button id="btn-menu-principal" class="menu-btn danger">🏠 MENU</button>
-
-            }            </div>
-
-            game.state = 'menu';        </div>
-
-            showScreen('menu');    </div>
-
-        }
-
-    <!-- TELA DE AJUDA -->
-
-        function showHelp() {    <div id="tela-ajuda" class="overlay">
-
-            showScreen('help');        <div class="menu-container">
-
-        }            <h2>❓ COMO JOGAR</h2>
-
-            <div style="text-align: left; margin: 2rem 0;">
-
-        // ===========================                <h3>🎯 OBJETIVO</h3>
-
-        // LOOP PRINCIPAL                <p>Escape do labirinto (🟩) sem ser capturado pelo Minotauro (🐂)!</p>
-
-        // ===========================                <br>
-
-        function gameLoop(currentTime) {                
-
-            const deltaTime = currentTime - lastTime;                <h3>🕹️ CONTROLES</h3>
-
-            lastTime = currentTime;                <p><kbd>WASD</kbd> ou <kbd>↑↓←→</kbd> - Mover</p>
-
-                            <p><kbd>ESPAÇO</kbd> - Ativar/Desativar Fio de Ariadne</p>
-
-            updateGame(deltaTime);                <p><kbd>ESC</kbd> - Pausar jogo</p>
-
-            render();                <br>
-
-                            
-
-            animationId = requestAnimationFrame(gameLoop);                <h3>🐂 MINOTAURO</h3>
-
-        }                <p>🟢 Verde: Patrulhando</p>
-
-                <p>🟡 Amarelo: Investigando</p>
-
-        // ===========================                <p>🔴 Vermelho: PERSEGUINDO!</p>
-
-        // INICIALIZAÇÃO                <br>
-
-        // ===========================                
-
-        document.addEventListener('DOMContentLoaded', () => {                <h3>💡 DICAS</h3>
-
-            console.log('🏛️ Labirinto de Creta - Sistema Único');                <p>• Use paredes para quebrar linha de visão</p>
-
-            console.log('✅ Clique em INICIAR JOGO para começar!');                <p>• O Fio de Ariadne ajuda a não se perder</p>
-
-        });                <p>• Seja rápido mas cauteloso!</p>
-
-            </div>
-
-        // Debug            <button id="btn-voltar-ajuda" class="menu-btn primary">🔙 VOLTAR</button>
-
-        document.addEventListener('click', (e) => {        </div>
-
-            if (e.target.tagName === 'BUTTON') {    </div>
-
-                console.log(`🖱️ Clique: ${e.target.textContent}`);
-
-            }    <script>
-
-        });        // ================================
-
-    </script>        // SISTEMA COMPLETO - ARQUIVO ÚNICO
-
-</body>        // ================================
-
-</html>
-        // Estado do jogo
-        let currentState = 'MENU';
-        const game = {
-            level: 1,
-            time: 0,
-            state: 'menu', // 'playing', 'paused', 'won', 'lost'
-            maze: null,
-            player: null,
-            minotaur: null,
-            fioActive: false,
-            seed: Date.now()
-        };
-
-        // Canvas e contexto
-        let canvas, ctx;
-        let lastTime = 0;
-        let animationId = null;
-
-        // ===============================
-        // CLASSE MAZE (Gerador de Labirinto)
-        // ===============================
-        class Maze {
-            constructor(size, seed = 12345) {
-                this.size = Math.max(15, Math.min(size, 31));
-                if (this.size % 2 === 0) this.size++;
-                
-                this.seed = seed;
-                this.rng = this.seededRandom(seed);
-                
-                this.grid = Array(this.size).fill().map(() => Array(this.size).fill(1));
-                this.generate();
-                this.findStartEnd();
-            }
-            
-            seededRandom(seed) {
-                let state = seed;
-                return () => {
-                    state = (state * 1664525 + 1013904223) % Math.pow(2, 32);
-                    return (state / Math.pow(2, 32));
+            generateMaze() {
+                const size = Math.min(15 + (this.level - 1) * 2, 25);
+                this.maze = {
+                    width: size,
+                    height: size,
+                    walls: []
                 };
-            }
-            
-            generate() {
-                const stack = [];
-                let current = { x: 1, y: 1 };
-                this.grid[1][1] = 0;
-                
-                while (true) {
-                    const neighbors = this.getUnvisitedNeighbors(current);
-                    
-                    if (neighbors.length > 0) {
-                        const next = neighbors[Math.floor(this.rng() * neighbors.length)];
-                        stack.push(current);
-                        
-                        const wallX = current.x + (next.x - current.x) / 2;
-                        const wallY = current.y + (next.y - current.y) / 2;
-                        
-                        this.grid[wallY][wallX] = 0;
-                        this.grid[next.y][next.x] = 0;
-                        
-                        current = next;
-                    } else if (stack.length > 0) {
-                        current = stack.pop();
-                    } else {
-                        break;
-                    }
-                }
-            }
-            
-            getUnvisitedNeighbors(cell) {
-                const neighbors = [];
-                const directions = [[0, -2], [2, 0], [0, 2], [-2, 0]];
-                
-                for (const [dx, dy] of directions) {
-                    const nx = cell.x + dx;
-                    const ny = cell.y + dy;
-                    
-                    if (nx > 0 && nx < this.size - 1 && ny > 0 && ny < this.size - 1 && this.grid[ny][nx] === 1) {
-                        neighbors.push({ x: nx, y: ny });
-                    }
-                }
-                
-                return neighbors;
-            }
-            
-            findStartEnd() {
-                this.start = { x: 1, y: 1 };
-                this.exit = { x: this.size - 2, y: this.size - 2 };
-                this.minotaurStart = { x: Math.floor(this.size / 2), y: Math.floor(this.size / 2) };
-            }
-            
-            get(x, y) {
-                if (x < 0 || x >= this.size || y < 0 || y >= this.size) return 1;
-                return this.grid[y][x];
-            }
-            
-            isWalkable(x, y) {
-                return this.get(Math.floor(x), Math.floor(y)) === 0;
-            }
-        }
 
-        // ===============================
-        // CLASSE PLAYER
-        // ===============================
-        class Player {
-            constructor(startCell) {
-                this.x = startCell.x + 0.5;
-                this.y = startCell.y + 0.5;
-                this.speed = 4.0;
-                this.trail = [];
-                this.lastMoveTime = 0;
+                // Initialize maze with walls
+                for (let y = 0; y < size; y++) {
+                    this.maze.walls[y] = [];
+                    for (let x = 0; x < size; x++) {
+                        this.maze.walls[y][x] = 1;
+                    }
+                }
+
+                // Create paths using simple algorithm
+                this.carveMaze(1, 1);
+                
+                // Ensure start and end are clear
+                this.maze.walls[1][1] = 0;
+                this.maze.walls[size - 2][size - 2] = 0;
+                
+                // Calculate cell size
+                this.cellSize = Math.min(this.canvas.width / size, this.canvas.height / size);
             }
-            
-            update(deltaTime, input, maze) {
-                const moveSpeed = this.speed * deltaTime / 1000;
-                let newX = this.x;
-                let newY = this.y;
-                let moved = false;
-                
-                if (input.up) { newY -= moveSpeed; moved = true; }
-                if (input.down) { newY += moveSpeed; moved = true; }
-                if (input.left) { newX -= moveSpeed; moved = true; }
-                if (input.right) { newX += moveSpeed; moved = true; }
-                
-                // Verificar colisões
-                if (maze.isWalkable(newX, this.y)) {
-                    this.x = newX;
-                }
-                if (maze.isWalkable(this.x, newY)) {
-                    this.y = newY;
-                }
-                
-                // Adicionar ao trail se o fio estiver ativo e se moveu
-                if (game.fioActive && moved) {
-                    const now = Date.now();
-                    if (now - this.lastMoveTime > 100) { // Trail a cada 100ms
-                        this.trail.push({ x: this.x, y: this.y, time: now });
-                        this.lastMoveTime = now;
+
+            carveMaze(x, y) {
+                const dirs = [[0, 2], [2, 0], [0, -2], [-2, 0]];
+                dirs.sort(() => Math.random() - 0.5);
+
+                this.maze.walls[y][x] = 0;
+
+                for (const [dx, dy] of dirs) {
+                    const nx = x + dx;
+                    const ny = y + dy;
+
+                    if (nx > 0 && nx < this.maze.width - 1 && 
+                        ny > 0 && ny < this.maze.height - 1 && 
+                        this.maze.walls[ny][nx] === 1) {
                         
-                        // Limitar tamanho do trail
-                        if (this.trail.length > 1000) {
-                            this.trail.shift();
+                        this.maze.walls[y + dy / 2][x + dx / 2] = 0;
+                        this.carveMaze(nx, ny);
+                    }
+                }
+            }
+
+            resetPlayer() {
+                this.player.x = 1.5;
+                this.player.y = 1.5;
+                this.player.trail = [];
+            }
+
+            resetMinotaur() {
+                this.minotaur.x = this.maze.width - 1.5;
+                this.minotaur.y = 1.5;
+                this.minotaur.state = 'PATROL';
+                this.minotaur.vx = 0;
+                this.minotaur.vy = 0;
+                this.minotaur.lastDir = 0;
+            }
+
+            update(currentTime) {
+                if (this.gameState !== 'playing') return;
+
+                const deltaTime = currentTime - this.lastTime;
+                this.lastTime = currentTime;
+
+                this.gameTime = Date.now() - this.startTime;
+
+                this.updatePlayer(deltaTime);
+                this.updateMinotaur(deltaTime);
+                this.checkCollisions();
+                this.updateHUD();
+                this.render();
+
+                this.gameLoop = requestAnimationFrame((time) => this.update(time));
+            }
+
+            updatePlayer(deltaTime) {
+                const speed = 0.003;
+                let dx = 0, dy = 0;
+
+                if (this.keys.has('KeyW') || this.keys.has('ArrowUp')) dy -= speed * deltaTime;
+                if (this.keys.has('KeyS') || this.keys.has('ArrowDown')) dy += speed * deltaTime;
+                if (this.keys.has('KeyA') || this.keys.has('ArrowLeft')) dx -= speed * deltaTime;
+                if (this.keys.has('KeyD') || this.keys.has('ArrowRight')) dx += speed * deltaTime;
+
+                this.threadActive = this.keys.has('Space');
+
+                // Move player with collision
+                const newX = this.player.x + dx;
+                const newY = this.player.y + dy;
+
+                if (!this.isWall(newX, this.player.y)) {
+                    this.player.x = newX;
+                }
+                if (!this.isWall(this.player.x, newY)) {
+                    this.player.y = newY;
+                }
+
+                // Add to trail
+                if (this.threadActive && this.player.trail.length % 5 === 0) {
+                    this.player.trail.push({
+                        x: this.player.x,
+                        y: this.player.y
+                    });
+                    if (this.player.trail.length > 100) {
+                        this.player.trail.shift();
+                    }
+                }
+            }
+
+            updateMinotaur(deltaTime) {
+                const speed = 0.002;
+                
+                // Simple AI: move randomly, chase if close
+                const distToPlayer = Math.sqrt(
+                    Math.pow(this.player.x - this.minotaur.x, 2) + 
+                    Math.pow(this.player.y - this.minotaur.y, 2)
+                );
+
+                if (distToPlayer < 4 && this.hasLineOfSight()) {
+                    this.minotaur.state = 'CHASE';
+                    // Move toward player
+                    const dx = this.player.x - this.minotaur.x;
+                    const dy = this.player.y - this.minotaur.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                    
+                    this.minotaur.vx = (dx / dist) * speed * deltaTime * 1.5;
+                    this.minotaur.vy = (dy / dist) * speed * deltaTime * 1.5;
+                } else {
+                    this.minotaur.state = 'PATROL';
+                    // Random movement
+                    this.minotaur.lastDir -= deltaTime;
+                    if (this.minotaur.lastDir <= 0) {
+                        const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+                        const [dx, dy] = dirs[Math.floor(Math.random() * dirs.length)];
+                        this.minotaur.vx = dx * speed * deltaTime;
+                        this.minotaur.vy = dy * speed * deltaTime;
+                        this.minotaur.lastDir = 1000 + Math.random() * 2000;
+                    }
+                }
+
+                // Move minotaur with collision
+                const newX = this.minotaur.x + this.minotaur.vx;
+                const newY = this.minotaur.y + this.minotaur.vy;
+
+                if (!this.isWall(newX, this.minotaur.y)) {
+                    this.minotaur.x = newX;
+                } else {
+                    this.minotaur.vx = -this.minotaur.vx;
+                }
+
+                if (!this.isWall(this.minotaur.x, newY)) {
+                    this.minotaur.y = newY;
+                } else {
+                    this.minotaur.vy = -this.minotaur.vy;
+                }
+            }
+
+            hasLineOfSight() {
+                // Simplified line of sight
+                return Math.random() > 0.3; // 70% chance of seeing player when close
+            }
+
+            isWall(x, y) {
+                const gx = Math.floor(x);
+                const gy = Math.floor(y);
+                return this.maze.walls[gy]?.[gx] === 1;
+            }
+
+            checkCollisions() {
+                // Check win condition
+                const exitX = this.maze.width - 2;
+                const exitY = this.maze.height - 2;
+                
+                if (Math.abs(this.player.x - exitX - 0.5) < 0.5 && 
+                    Math.abs(this.player.y - exitY - 0.5) < 0.5) {
+                    this.gameWon();
+                    return;
+                }
+
+                // Check minotaur collision
+                const dist = Math.sqrt(
+                    Math.pow(this.player.x - this.minotaur.x, 2) + 
+                    Math.pow(this.player.y - this.minotaur.y, 2)
+                );
+
+                if (dist < 0.8) {
+                    this.gameOver();
+                }
+            }
+
+            gameWon() {
+                this.gameState = 'won';
+                document.getElementById('victory-level').textContent = this.level;
+                document.getElementById('victory-time').textContent = `${Math.floor(this.gameTime / 1000)}s`;
+                this.showOverlay('victory');
+            }
+
+            gameOver() {
+                this.gameState = 'gameover';
+                this.showOverlay('gameover');
+            }
+
+            nextLevel() {
+                this.level++;
+                this.startLevel();
+            }
+
+            restartLevel() {
+                this.startLevel();
+            }
+
+            stopGame() {
+                this.gameState = 'menu';
+                if (this.gameLoop) {
+                    cancelAnimationFrame(this.gameLoop);
+                    this.gameLoop = null;
+                }
+            }
+
+            updateHUD() {
+                document.getElementById('hud-level').textContent = this.level;
+                document.getElementById('hud-time').textContent = `${Math.floor(this.gameTime / 1000)}s`;
+                document.getElementById('hud-thread').textContent = this.threadActive ? 'ATIVO' : 'INATIVO';
+                document.getElementById('hud-minotaur').textContent = this.minotaur.state;
+            }
+
+            render() {
+                if (!this.ctx || !this.maze) return;
+
+                // Fundo mais claro e colorido
+                const backgroundGradient = this.ctx.createLinearGradient(0, 0, this.canvas.width, this.canvas.height);
+                backgroundGradient.addColorStop(0, '#1e3a8a');
+                backgroundGradient.addColorStop(0.5, '#1e40af');
+                backgroundGradient.addColorStop(1, '#2563eb');
+                this.ctx.fillStyle = backgroundGradient;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // Draw maze com paredes mais claras
+                for (let y = 0; y < this.maze.height; y++) {
+                    for (let x = 0; x < this.maze.width; x++) {
+                        if (this.maze.walls[y][x] === 1) {
+                            // Paredes com gradiente dourado
+                            const wallGradient = this.ctx.createLinearGradient(
+                                x * this.cellSize, y * this.cellSize,
+                                (x + 1) * this.cellSize, (y + 1) * this.cellSize
+                            );
+                            wallGradient.addColorStop(0, '#d97706');
+                            wallGradient.addColorStop(0.5, '#f59e0b');
+                            wallGradient.addColorStop(1, '#fbbf24');
+                            this.ctx.fillStyle = wallGradient;
+                            this.ctx.fillRect(
+                                x * this.cellSize, 
+                                y * this.cellSize, 
+                                this.cellSize, 
+                                this.cellSize
+                            );
+                            
+                            // Adicionar borda mais escura para definição
+                            this.ctx.strokeStyle = '#92400e';
+                            this.ctx.lineWidth = 1;
+                            this.ctx.strokeRect(
+                                x * this.cellSize, 
+                                y * this.cellSize, 
+                                this.cellSize, 
+                                this.cellSize
+                            );
                         }
                     }
                 }
-            }
-        }
 
-        // ===============================
-        // CLASSE MINOTAUR (IA IMPLACÁVEL)
-        // ===============================
-        class Minotaur {
-            constructor(startCell) {
-                this.x = startCell.x + 0.5;
-                this.y = startCell.y + 0.5;
-                this.speed = 2.0;
-                this.chaseSpeed = 3.5;
-                this.state = 'patrol'; // 'patrol', 'chase'
-                this.sightRange = 8;
-                this.lastPlayerPos = null;
-                this.patrolTarget = null;
-                this.chaseTime = 0;
-            }
-            
-            update(deltaTime, player, maze) {
-                const dt = deltaTime / 1000;
+                // Draw exit com efeito especial
+                const exitX = this.maze.width - 2;
+                const exitY = this.maze.height - 2;
                 
-                // Verificar se pode ver o jogador
-                if (this.canSeePlayer(player, maze)) {
-                    this.state = 'chase';
-                    this.lastPlayerPos = { x: player.x, y: player.y };
-                    this.chaseTime = 5000; // Perseguir por 5 segundos mesmo se perder de vista
-                } else if (this.chaseTime > 0) {
-                    this.chaseTime -= deltaTime;
-                    if (this.chaseTime <= 0) {
-                        this.state = 'patrol';
+                // Glow da saída
+                this.ctx.save();
+                this.ctx.shadowColor = '#10b981';
+                this.ctx.shadowBlur = 20;
+                
+                // Gradiente da saída
+                const exitGradient = this.ctx.createRadialGradient(
+                    exitX * this.cellSize + this.cellSize/2,
+                    exitY * this.cellSize + this.cellSize/2,
+                    0,
+                    exitX * this.cellSize + this.cellSize/2,
+                    exitY * this.cellSize + this.cellSize/2,
+                    this.cellSize/2
+                );
+                exitGradient.addColorStop(0, '#10b981');
+                exitGradient.addColorStop(0.7, '#059669');
+                exitGradient.addColorStop(1, '#047857');
+                
+                this.ctx.fillStyle = exitGradient;
+                this.ctx.fillRect(
+                    exitX * this.cellSize + 2, 
+                    exitY * this.cellSize + 2, 
+                    this.cellSize - 4, 
+                    this.cellSize - 4
+                );
+                this.ctx.restore();
+
+                // Draw trail (Fio de Ariadne) com efeito especial
+                if (this.threadActive && this.player.trail.length > 1) {
+                    this.ctx.save();
+                    this.ctx.shadowColor = '#ffd700';
+                    this.ctx.shadowBlur = 10;
+                    
+                    // Criar gradiente para o fio
+                    const trailGradient = this.ctx.createLinearGradient(
+                        this.player.trail[0].x * this.cellSize,
+                        this.player.trail[0].y * this.cellSize,
+                        this.player.trail[this.player.trail.length - 1].x * this.cellSize,
+                        this.player.trail[this.player.trail.length - 1].y * this.cellSize
+                    );
+                    trailGradient.addColorStop(0, 'rgba(255, 215, 0, 0.3)');
+                    trailGradient.addColorStop(0.5, 'rgba(255, 215, 0, 0.8)');
+                    trailGradient.addColorStop(1, 'rgba(255, 215, 0, 1)');
+                    
+                    this.ctx.strokeStyle = trailGradient;
+                    this.ctx.lineWidth = 4;
+                    this.ctx.lineCap = 'round';
+                    this.ctx.lineJoin = 'round';
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(
+                        this.player.trail[0].x * this.cellSize, 
+                        this.player.trail[0].y * this.cellSize
+                    );
+                    for (let i = 1; i < this.player.trail.length; i++) {
+                        this.ctx.lineTo(
+                            this.player.trail[i].x * this.cellSize, 
+                            this.player.trail[i].y * this.cellSize
+                        );
                     }
+                    this.ctx.stroke();
+                    this.ctx.restore();
                 }
+
+                // Draw player (Teseu) com efeito especial
+                this.ctx.save();
+                this.ctx.shadowColor = '#60a5fa';
+                this.ctx.shadowBlur = 15;
                 
-                // Movimento baseado no estado
-                if (this.state === 'chase' && this.lastPlayerPos) {
-                    this.moveTowards(this.lastPlayerPos, this.chaseSpeed * dt, maze);
+                // Gradiente do player
+                const playerGradient = this.ctx.createRadialGradient(
+                    this.player.x * this.cellSize,
+                    this.player.y * this.cellSize,
+                    0,
+                    this.player.x * this.cellSize,
+                    this.player.y * this.cellSize,
+                    this.cellSize * 0.4
+                );
+                playerGradient.addColorStop(0, '#60a5fa');
+                playerGradient.addColorStop(0.6, '#3b82f6');
+                playerGradient.addColorStop(1, '#1d4ed8');
+                
+                this.ctx.fillStyle = playerGradient;
+                this.ctx.beginPath();
+                this.ctx.arc(
+                    this.player.x * this.cellSize, 
+                    this.player.y * this.cellSize, 
+                    this.cellSize * 0.35, 
+                    0, 
+                    Math.PI * 2
+                );
+                this.ctx.fill();
+                
+                // Borda do player
+                this.ctx.strokeStyle = '#1e40af';
+                this.ctx.lineWidth = 2;
+                this.ctx.stroke();
+                this.ctx.restore();
+
+                // Draw minotaur com efeito especial
+                this.ctx.save();
+                const isChasing = this.minotaur.state === 'CHASE';
+                this.ctx.shadowColor = isChasing ? '#ef4444' : '#f59e0b';
+                this.ctx.shadowBlur = isChasing ? 25 : 15;
+                
+                // Gradiente do minotaur
+                const minotaurGradient = this.ctx.createRadialGradient(
+                    this.minotaur.x * this.cellSize,
+                    this.minotaur.y * this.cellSize,
+                    0,
+                    this.minotaur.x * this.cellSize,
+                    this.minotaur.y * this.cellSize,
+                    this.cellSize * 0.4
+                );
+                
+                if (isChasing) {
+                    minotaurGradient.addColorStop(0, '#fca5a5');
+                    minotaurGradient.addColorStop(0.6, '#ef4444');
+                    minotaurGradient.addColorStop(1, '#dc2626');
                 } else {
-                    this.patrol(dt, maze);
+                    minotaurGradient.addColorStop(0, '#fcd34d');
+                    minotaurGradient.addColorStop(0.6, '#f59e0b');
+                    minotaurGradient.addColorStop(1, '#d97706');
                 }
                 
-                // Atualizar status visual
-                this.updateStatus();
-            }
-            
-            canSeePlayer(player, maze) {
-                const dx = player.x - this.x;
-                const dy = player.y - this.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
+                this.ctx.fillStyle = minotaurGradient;
+                this.ctx.beginPath();
+                this.ctx.arc(
+                    this.minotaur.x * this.cellSize, 
+                    this.minotaur.y * this.cellSize, 
+                    this.cellSize * 0.38, 
+                    0, 
+                    Math.PI * 2
+                );
+                this.ctx.fill();
                 
-                if (distance > this.sightRange) return false;
+                // Borda do minotaur
+                this.ctx.strokeStyle = isChasing ? '#991b1b' : '#92400e';
+                this.ctx.lineWidth = 2;
+                this.ctx.stroke();
+                this.ctx.restore();
+
+                // Efeito de iluminação sutil e colorido
+                this.ctx.save();
+                this.ctx.fillStyle = 'rgba(0, 0, 20, 0.15)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.globalCompositeOperation = 'destination-out';
+
+                const lightRadius = this.cellSize * 6;
+                const lightGradient = this.ctx.createRadialGradient(
+                    this.player.x * this.cellSize, 
+                    this.player.y * this.cellSize, 
+                    lightRadius * 0.2,
+                    this.player.x * this.cellSize, 
+                    this.player.y * this.cellSize, 
+                    lightRadius
+                );
+                lightGradient.addColorStop(0, 'rgba(0, 0, 20, 0.8)');
+                lightGradient.addColorStop(0.4, 'rgba(0, 0, 20, 0.3)');
+                lightGradient.addColorStop(1, 'rgba(0, 0, 20, 0)');
                 
-                // Verificar linha de visão
-                const steps = Math.ceil(distance * 2);
-                for (let i = 0; i <= steps; i++) {
-                    const checkX = this.x + (dx * i / steps);
-                    const checkY = this.y + (dy * i / steps);
-                    
-                    if (maze.get(Math.floor(checkX), Math.floor(checkY)) === 1) {
-                        return false;
-                    }
-                }
-                
-                return true;
+                this.ctx.fillStyle = lightGradient;
+                this.ctx.beginPath();
+                this.ctx.arc(
+                    this.player.x * this.cellSize, 
+                    this.player.y * this.cellSize, 
+                    lightRadius, 
+                    0, 
+                    Math.PI * 2
+                );
+                this.ctx.fill();
+                this.ctx.restore();
             }
-            
-            moveTowards(target, speed, maze) {
-                const dx = target.x - this.x;
-                const dy = target.y - this.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance > 0.1) {
-                    const moveX = (dx / distance) * speed;
-                    const moveY = (dy / distance) * speed;
-                    
-                    if (maze.isWalkable(this.x + moveX, this.y)) {
-                        this.x += moveX;
-                    }
-                    if (maze.isWalkable(this.x, this.y + moveY)) {
-                        this.y += moveY;
-                    }
-                }
+
+            showHelp() {
+                alert(`❓ Como Jogar - Labirinto de Creta:
+
+🎯 OBJETIVO:
+• Escape do labirinto sem ser capturado pelo Minotauro
+
+🎮 CONTROLES:
+• WASD ou Setas: Mover Teseu
+• SPACE: Ativar/desativar Fio de Ariadne
+• ESC: Voltar ao menu
+
+🧵 FIO DE ARIADNE:
+• Deixa um rastro dourado do seu caminho
+• Use para não se perder no labirinto
+
+🐂 MINOTAURO:
+• Patrulha o labirinto procurando por você
+• Fica vermelho e mais rápido quando te persegue
+• Evite ser capturado!
+
+🏆 DICAS:
+• Use as paredes para se esconder
+• O Fio de Ariadne te ajuda a voltar
+• Seja rápido mas cuidadoso!
+• A saída fica no canto inferior direito (verde)`);
             }
-            
-            patrol(dt, maze) {
-                if (!this.patrolTarget || this.reachedTarget()) {
-                    this.pickNewPatrolTarget(maze);
-                }
-                
-                if (this.patrolTarget) {
-                    this.moveTowards(this.patrolTarget, this.speed * dt, maze);
-                }
-            }
-            
-            pickNewPatrolTarget(maze) {
-                // Escolher uma posição aleatória caminhável
-                const attempts = 50;
-                for (let i = 0; i < attempts; i++) {
-                    const x = Math.random() * maze.size;
-                    const y = Math.random() * maze.size;
-                    
-                    if (maze.isWalkable(x, y)) {
-                        this.patrolTarget = { x, y };
-                        break;
-                    }
-                }
-            }
-            
-            reachedTarget() {
-                if (!this.patrolTarget) return true;
-                
-                const dx = this.patrolTarget.x - this.x;
-                const dy = this.patrolTarget.y - this.y;
-                return Math.sqrt(dx * dx + dy * dy) < 0.5;
-            }
-            
-            updateStatus() {
-                const statusEl = document.getElementById('minotaur-status');
-                if (statusEl) {
-                    statusEl.className = 'hud-value minotaur-status ' + this.state;
-                    statusEl.textContent = this.state === 'chase' ? '🔴' : '🟢';
-                }
+
+            showSettings() {
+                alert(`⚙️ Configurações - Labirinto de Creta:
+
+🎮 CONTROLES:
+• WASD: Movimento principal
+• Setas: Movimento alternativo  
+• SPACE: Fio de Ariadne
+• ESC: Menu
+
+🎨 GRÁFICOS:
+• Iluminação dinâmica: Ativada
+• Efeitos visuais: Ativados
+• Responsivo: Sim
+
+🔊 ÁUDIO:
+• Sistema de áudio será implementado em breve
+
+📱 COMPATIBILIDADE:
+• Desktop: Total
+• Mobile: Parcial (sem teclado)`);
             }
         }
 
-        // ===============================
-        // SISTEMA DE INPUT
-        // ===============================
-        const input = {
-            up: false, down: false, left: false, right: false,
-            space: false, spacePressed: false
-        };
-
-        document.addEventListener('keydown', (e) => {
-            switch(e.code) {
-                case 'KeyW': case 'ArrowUp': input.up = true; break;
-                case 'KeyS': case 'ArrowDown': input.down = true; break;
-                case 'KeyA': case 'ArrowLeft': input.left = true; break;
-                case 'KeyD': case 'ArrowRight': input.right = true; break;
-                case 'Space':
-                    e.preventDefault();
-                    if (!input.spacePressed) {
-                        input.space = true;
-                        input.spacePressed = true;
-                    }
-                    break;
-                case 'Escape':
-                    e.preventDefault();
-                    if (game.state === 'playing') {
-                        pauseGame();
-                    } else if (currentState === 'PAUSA') {
-                        resumeGame();
-                    }
-                    break;
-            }
-        });
-
-        document.addEventListener('keyup', (e) => {
-            switch(e.code) {
-                case 'KeyW': case 'ArrowUp': input.up = false; break;
-                case 'KeyS': case 'ArrowDown': input.down = false; break;
-                case 'KeyA': case 'ArrowLeft': input.left = false; break;
-                case 'KeyD': case 'ArrowRight': input.right = false; break;
-                case 'Space': input.spacePressed = false; break;
-            }
-        });
-
-        // ===============================
-        // SISTEMA DE RENDERIZAÇÃO
-        // ===============================
-        function initRenderer() {
-            canvas = document.getElementById('gameCanvas');
-            if (!canvas) return false;
-            
-            ctx = canvas.getContext('2d');
-            return true;
-        }
-
-        function render() {
-            if (!ctx || !game.maze) return;
-            
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            const cellSize = Math.min(canvas.width / game.maze.size, canvas.height / game.maze.size);
-            const offsetX = (canvas.width - cellSize * game.maze.size) / 2;
-            const offsetY = (canvas.height - cellSize * game.maze.size) / 2;
-            
-            // Renderizar labirinto
-            for (let y = 0; y < game.maze.size; y++) {
-                for (let x = 0; x < game.maze.size; x++) {
-                    const screenX = offsetX + x * cellSize;
-                    const screenY = offsetY + y * cellSize;
-                    
-                    if (game.maze.get(x, y) === 1) {
-                        // Parede
-                        ctx.fillStyle = '#444';
-                        ctx.fillRect(screenX, screenY, cellSize, cellSize);
-                        ctx.strokeStyle = '#666';
-                        ctx.strokeRect(screenX, screenY, cellSize, cellSize);
-                    } else {
-                        // Chão
-                        ctx.fillStyle = '#222';
-                        ctx.fillRect(screenX, screenY, cellSize, cellSize);
-                    }
-                }
-            }
-            
-            // Renderizar saída
-            const exitX = offsetX + game.maze.exit.x * cellSize;
-            const exitY = offsetY + game.maze.exit.y * cellSize;
-            ctx.fillStyle = '#4CAF50';
-            ctx.fillRect(exitX, exitY, cellSize, cellSize);
-            ctx.fillStyle = '#000';
-            ctx.font = `${cellSize * 0.6}px Arial`;
-            ctx.textAlign = 'center';
-            ctx.fillText('🚪', exitX + cellSize/2, exitY + cellSize*0.7);
-            
-            // Renderizar trail do fio
-            if (game.fioActive && game.player.trail.length > 1) {
-                ctx.strokeStyle = '#FFD700';
-                ctx.lineWidth = 3;
-                ctx.globalAlpha = 0.7;
-                ctx.beginPath();
-                
-                for (let i = 0; i < game.player.trail.length; i++) {
-                    const point = game.player.trail[i];
-                    const screenX = offsetX + point.x * cellSize;
-                    const screenY = offsetY + point.y * cellSize;
-                    
-                    if (i === 0) {
-                        ctx.moveTo(screenX, screenY);
-                    } else {
-                        ctx.lineTo(screenX, screenY);
-                    }
-                }
-                
-                ctx.stroke();
-                ctx.globalAlpha = 1;
-            }
-            
-            // Renderizar jogador
-            if (game.player) {
-                const playerX = offsetX + game.player.x * cellSize;
-                const playerY = offsetY + game.player.y * cellSize;
-                
-                ctx.fillStyle = '#2196F3';
-                ctx.beginPath();
-                ctx.arc(playerX, playerY, cellSize * 0.3, 0, Math.PI * 2);
-                ctx.fill();
-                
-                ctx.fillStyle = '#FFF';
-                ctx.font = `${cellSize * 0.4}px Arial`;
-                ctx.textAlign = 'center';
-                ctx.fillText('🛡️', playerX, playerY + cellSize * 0.15);
-            }
-            
-            // Renderizar minotauro
-            if (game.minotaur) {
-                const minotaurX = offsetX + game.minotaur.x * cellSize;
-                const minotaurY = offsetY + game.minotaur.y * cellSize;
-                
-                ctx.fillStyle = game.minotaur.state === 'chase' ? '#F44336' : '#FF5722';
-                ctx.beginPath();
-                ctx.arc(minotaurX, minotaurY, cellSize * 0.35, 0, Math.PI * 2);
-                ctx.fill();
-                
-                ctx.fillStyle = '#FFF';
-                ctx.font = `${cellSize * 0.5}px Arial`;
-                ctx.textAlign = 'center';
-                ctx.fillText('🐂', minotaurX, minotaurY + cellSize * 0.18);
-            }
-        }
-
-        // ===============================
-        // LÓGICA DO JOGO
-        // ===============================
-        function startLevel(level) {
-            console.log(`🏛️ Iniciando nível ${level}`);
-            
-            game.level = level;
-            game.time = 0;
-            game.state = 'playing';
-            game.seed = Date.now() + level;
-            
-            const size = Math.min(15 + (level - 1) * 2, 31);
-            game.maze = new Maze(size, game.seed);
-            game.player = new Player(game.maze.start);
-            game.minotaur = new Minotaur(game.maze.minotaurStart);
-            
-            updateHUD();
-            showMessage('Encontre a saída sem ser capturado pelo Minotauro!');
-        }
-
-        function updateGame(deltaTime) {
-            if (game.state !== 'playing') return;
-            
-            game.time += deltaTime;
-            
-            // Verificar input do fio
-            if (input.space) {
-                game.fioActive = !game.fioActive;
-                console.log(`🧵 Fio de Ariadne: ${game.fioActive ? 'ATIVADO' : 'DESATIVADO'}`);
-                input.space = false;
-            }
-            
-            // Atualizar entidades
-            if (game.player) game.player.update(deltaTime, input, game.maze);
-            if (game.minotaur) game.minotaur.update(deltaTime, game.player, game.maze);
-            
-            // Verificar colisões
-            checkCollisions();
-            
-            updateHUD();
-        }
-
-        function checkCollisions() {
-            if (!game.player || !game.minotaur) return;
-            
-            // Vitória - chegada na saída
-            const playerCell = {
-                x: Math.floor(game.player.x),
-                y: Math.floor(game.player.y)
-            };
-            
-            if (playerCell.x === game.maze.exit.x && playerCell.y === game.maze.exit.y) {
-                game.state = 'won';
-                showMessage(`🏆 Nível ${game.level} completo! Pressione ESC para continuar.`);
-                setTimeout(() => {
-                    startLevel(game.level + 1);
-                }, 3000);
-                return;
-            }
-            
-            // Derrota - captura pelo Minotauro
-            const dx = game.player.x - game.minotaur.x;
-            const dy = game.player.y - game.minotaur.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance < 0.6) {
-                game.state = 'lost';
-                showMessage('💀 Você foi capturado! Pressione ESC para tentar novamente.');
-                setTimeout(() => {
-                    startLevel(game.level);
-                }, 2000);
-            }
-        }
-
-        function updateHUD() {
-            const levelEl = document.getElementById('level');
-            const timeEl = document.getElementById('time');
-            const fioEl = document.getElementById('fio');
-            
-            if (levelEl) levelEl.textContent = game.level;
-            if (timeEl) timeEl.textContent = formatTime(game.time);
-            if (fioEl) fioEl.textContent = game.fioActive ? 'ON' : 'OFF';
-        }
-
-        function formatTime(ms) {
-            const seconds = Math.floor(ms / 1000);
-            const minutes = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        function showMessage(text) {
-            const messageEl = document.getElementById('game-message');
-            const textEl = document.getElementById('message-text');
-            
-            if (messageEl && textEl) {
-                textEl.textContent = text;
-                messageEl.classList.remove('hidden');
-                
-                setTimeout(() => {
-                    messageEl.classList.add('hidden');
-                }, 3000);
-            }
-        }
-
-        // ===============================
-        // SISTEMA DE ESTADOS/TELAS
-        // ===============================
-        function changeState(newState) {
-            console.log(`🔄 Mudando estado: ${currentState} → ${newState}`);
-            
-            // Esconder todas as telas
-            document.querySelectorAll('.overlay').forEach(el => {
-                el.classList.remove('active');
-            });
-            
-            // Mostrar tela correspondente
-            const targetScreen = document.getElementById(`tela-${newState.toLowerCase()}`);
-            if (targetScreen) {
-                targetScreen.classList.add('active');
-                currentState = newState;
-            }
-        }
-
-        function startGame() {
-            console.log('🎮 Iniciando jogo...');
-            
-            if (!initRenderer()) {
-                alert('❌ Erro ao inicializar canvas!');
-                return;
-            }
-            
-            changeState('JOGO');
-            startLevel(1);
-            
-            if (!animationId) {
-                gameLoop(0);
-            }
-        }
-
-        function pauseGame() {
-            console.log('⏸️ Pausando jogo...');
-            game.state = 'paused';
-            
-            // Atualizar dados da tela de pausa
-            const tempoEl = document.getElementById('pause-tempo');
-            const nivelEl = document.getElementById('pause-nivel');
-            
-            if (tempoEl) tempoEl.textContent = formatTime(game.time);
-            if (nivelEl) nivelEl.textContent = game.level;
-            
-            changeState('PAUSA');
-        }
-
-        function resumeGame() {
-            console.log('▶️ Retomando jogo...');
-            game.state = 'playing';
-            changeState('JOGO');
-        }
-
-        // ===============================
-        // LOOP PRINCIPAL DO JOGO
-        // ===============================
-        function gameLoop(currentTime) {
-            const deltaTime = currentTime - lastTime;
-            lastTime = currentTime;
-            
-            updateGame(deltaTime);
-            render();
-            
-            animationId = requestAnimationFrame(gameLoop);
-        }
-
-        // ===============================
-        // EVENT LISTENERS
-        // ===============================
+        // Inicializar o jogo quando a página carregar
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('🏛️ Labirinto de Creta - Sistema Único Carregado');
+            console.log('🏛️ Labirinto de Creta - Inicializando...');
+            const game = new LabirintoDeCreta();
+            game.init();
             
-            // Botões do menu
-            document.getElementById('btn-iniciar')?.addEventListener('click', startGame);
-            document.getElementById('btn-ajuda')?.addEventListener('click', () => changeState('AJUDA'));
-            
-            // Botões de pausa
-            document.getElementById('btn-continuar-jogo')?.addEventListener('click', resumeGame);
-            document.getElementById('btn-menu-principal')?.addEventListener('click', () => {
-                if (animationId) {
-                    cancelAnimationFrame(animationId);
-                    animationId = null;
-                }
-                game.state = 'menu';
-                changeState('MENU');
-            });
-            document.getElementById('btn-pausa')?.addEventListener('click', pauseGame);
-            
-            // Botão de voltar da ajuda
-            document.getElementById('btn-voltar-ajuda')?.addEventListener('click', () => changeState('MENU'));
-            
-            console.log('✅ Sistema inicializado - Clique em INICIAR JOGO para começar!');
+            // Tornar disponível globalmente para debug
+            window.game = game;
         });
 
-        // Debug - mostrar cliques
-        document.addEventListener('click', (e) => {
-            if (e.target.tagName === 'BUTTON') {
-                console.log(`🖱️ Botão clicado: ${e.target.id || e.target.textContent}`);
-            }
+        // Tratamento de erros
+        window.addEventListener('error', (e) => {
+            console.error('🚨 Erro no jogo:', e.error);
         });
     </script>
 </body>
