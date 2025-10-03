@@ -432,7 +432,7 @@
         /* Tela de Jogo */
         .game-hud {
             position: fixed;
-            top: 0;
+            top: -150px;
             left: 0;
             width: 100%;
             background: linear-gradient(180deg, 
@@ -448,6 +448,11 @@
             z-index: 10;
             border-bottom: 2px solid rgba(255, 215, 0, 0.3);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: top 0.5s ease-in-out;
+        }
+        
+        .game-hud.show {
+            top: 0;
         }
 
         .hud-left, .hud-right {
@@ -517,7 +522,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 80px 15px 15px;
+            padding: 20px 15px 15px;
             position: relative;
         }
 
@@ -876,7 +881,7 @@
             }
 
             .game-area {
-                padding: 100px 8px 15px;
+                padding: 15px 8px 8px;
             }
 
             .stat-item {
@@ -1101,13 +1106,31 @@
                 });
                 document.getElementById(`${screenName}-screen`).classList.add('active');
                 
-                if (screenName === 'game' && !this.canvas) {
-                    this.initGame();
+                // Controlar visibilidade do HUD
+                const hud = document.querySelector('.game-hud');
+                if (screenName === 'game') {
+                    // HUD fica oculto durante o jogo
+                    hud.classList.remove('show');
+                    if (!this.canvas) {
+                        this.initGame();
+                    }
+                } else {
+                    // HUD fica oculto em outras telas também
+                    hud.classList.remove('show');
                 }
             }
 
             showOverlay(overlayName) {
                 document.getElementById(`${overlayName}-overlay`).style.display = 'flex';
+            }
+
+            toggleHUD(show = false) {
+                const hud = document.querySelector('.game-hud');
+                if (show) {
+                    hud.classList.add('show');
+                } else {
+                    hud.classList.remove('show');
+                }
             }
 
             hideOverlay(overlayName) {
@@ -1269,12 +1292,33 @@
             }
 
             resetMinotaur() {
-                this.minotaur.x = this.maze.width - 1.5;
-                this.minotaur.y = 1.5;
+                // Posição simples e garantida para o minotauro
+                this.minotaur.x = this.maze.width - 2.5;
+                this.minotaur.y = this.maze.height - 2.5;
+                
+                // Se a posição estiver em uma parede, mover para uma posição livre próxima
+                if (this.isWall(this.minotaur.x, this.minotaur.y)) {
+                    // Tentar posições próximas
+                    for (let dx = -1; dx <= 1; dx++) {
+                        for (let dy = -1; dy <= 1; dy++) {
+                            const testX = this.minotaur.x + dx;
+                            const testY = this.minotaur.y + dy;
+                            if (!this.isWall(testX, testY)) {
+                                this.minotaur.x = testX;
+                                this.minotaur.y = testY;
+                                break;
+                            }
+                        }
+                    }
+                }
+                
                 this.minotaur.state = 'PATROL';
                 this.minotaur.vx = 0;
                 this.minotaur.vy = 0;
                 this.minotaur.lastDir = 0;
+                
+                console.log(`🐂 Minotauro posicionado em: (${this.minotaur.x.toFixed(1)}, ${this.minotaur.y.toFixed(1)})`);
+                console.log(`🏛️ Labirinto: ${this.maze.width}x${this.maze.height}`);
             }
 
             update(currentTime) {
@@ -1284,6 +1328,11 @@
                 this.lastTime = currentTime;
 
                 this.gameTime = Date.now() - this.startTime;
+                
+                // Debug - verificar posição do minotauro (remover depois)
+                if (Math.random() < 0.01) { // Log apenas 1% das vezes para não spam
+                    console.log(`🐂 Minotauro: x=${this.minotaur.x.toFixed(2)}, y=${this.minotaur.y.toFixed(2)}, state=${this.minotaur.state}`);
+                }
 
                 this.updatePlayer(deltaTime);
                 this.updateMinotaur(deltaTime);
@@ -1556,19 +1605,18 @@
                     this.ctx.restore();
                 }
 
-                // Draw player (Teseu) com efeito especial
+                // Draw player (Teseu) - Herói com ícone
                 this.ctx.save();
                 this.ctx.shadowColor = '#60a5fa';
                 this.ctx.shadowBlur = 15;
                 
-                // Gradiente do player
+                const playerX = this.player.x * this.cellSize;
+                const playerY = this.player.y * this.cellSize;
+                
+                // Círculo azul brilhante para o herói
                 const playerGradient = this.ctx.createRadialGradient(
-                    this.player.x * this.cellSize,
-                    this.player.y * this.cellSize,
-                    0,
-                    this.player.x * this.cellSize,
-                    this.player.y * this.cellSize,
-                    this.cellSize * 0.4
+                    playerX, playerY, 0,
+                    playerX, playerY, this.cellSize * 0.4
                 );
                 playerGradient.addColorStop(0, '#60a5fa');
                 playerGradient.addColorStop(0.6, '#3b82f6');
@@ -1576,35 +1624,41 @@
                 
                 this.ctx.fillStyle = playerGradient;
                 this.ctx.beginPath();
-                this.ctx.arc(
-                    this.player.x * this.cellSize, 
-                    this.player.y * this.cellSize, 
-                    this.cellSize * 0.35, 
-                    0, 
-                    Math.PI * 2
-                );
+                this.ctx.arc(playerX, playerY, this.cellSize * 0.35, 0, Math.PI * 2);
                 this.ctx.fill();
                 
-                // Borda do player
+                // Borda do herói
                 this.ctx.strokeStyle = '#1e40af';
                 this.ctx.lineWidth = 2;
                 this.ctx.stroke();
+                
+                // Ícone do herói (⚔️)
+                this.ctx.font = `${this.cellSize * 0.4}px Arial`;
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillText('⚔️', playerX, playerY);
+                
                 this.ctx.restore();
 
-                // Draw minotaur com efeito especial
+                // Draw minotaur - Monstro com ícone
                 this.ctx.save();
                 const isChasing = this.minotaur.state === 'CHASE';
                 this.ctx.shadowColor = isChasing ? '#ef4444' : '#f59e0b';
                 this.ctx.shadowBlur = isChasing ? 25 : 15;
                 
-                // Gradiente do minotaur
+                const minotaurX = this.minotaur.x * this.cellSize;
+                const minotaurY = this.minotaur.y * this.cellSize;
+                
+                // Debug - verificar se está dentro da tela
+                if (Math.random() < 0.005) { // Log apenas raramente
+                    console.log(`🎨 Desenhando Minotauro: x=${minotaurX.toFixed(1)}, y=${minotaurY.toFixed(1)}, cellSize=${this.cellSize}`);
+                }
+                
+                // Círculo laranja/vermelho para o minotauro
                 const minotaurGradient = this.ctx.createRadialGradient(
-                    this.minotaur.x * this.cellSize,
-                    this.minotaur.y * this.cellSize,
-                    0,
-                    this.minotaur.x * this.cellSize,
-                    this.minotaur.y * this.cellSize,
-                    this.cellSize * 0.4
+                    minotaurX, minotaurY, 0,
+                    minotaurX, minotaurY, this.cellSize * 0.4
                 );
                 
                 if (isChasing) {
@@ -1619,19 +1673,21 @@
                 
                 this.ctx.fillStyle = minotaurGradient;
                 this.ctx.beginPath();
-                this.ctx.arc(
-                    this.minotaur.x * this.cellSize, 
-                    this.minotaur.y * this.cellSize, 
-                    this.cellSize * 0.38, 
-                    0, 
-                    Math.PI * 2
-                );
+                this.ctx.arc(minotaurX, minotaurY, this.cellSize * 0.38, 0, Math.PI * 2);
                 this.ctx.fill();
                 
-                // Borda do minotaur
-                this.ctx.strokeStyle = isChasing ? '#991b1b' : '#92400e';
+                // Borda do minotauro
+                this.ctx.strokeStyle = isChasing ? '#dc2626' : '#d97706';
                 this.ctx.lineWidth = 2;
                 this.ctx.stroke();
+                
+                // Ícone do minotauro (🐂)
+                this.ctx.font = `${this.cellSize * 0.5}px Arial`;
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillText('🐂', minotaurX, minotaurY);
+                
                 this.ctx.restore();
 
                 // Efeito de iluminação sutil e colorido

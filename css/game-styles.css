@@ -438,7 +438,7 @@ body::before {
 /* ===== TELA DE JOGO ===== */
 .game-hud {
     position: fixed;
-    top: 0;
+    top: -150px;
     left: 0;
     width: 100%;
     background: linear-gradient(180deg, 
@@ -454,6 +454,11 @@ body::before {
     z-index: 10;
     border-bottom: 2px solid rgba(255, 215, 0, 0.3);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    transition: top 0.5s ease-in-out;
+}
+
+.game-hud.show {
+    top: 0;
 }
 
 .hud-left, .hud-right {
@@ -523,7 +528,7 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 80px 15px 15px;
+    padding: 20px 15px 15px;
     position: relative;
 }
 
@@ -882,7 +887,7 @@ body::before {
     }
 
     .game-area {
-        padding: 100px 8px 15px;
+        padding: 15px 8px 8px;
     }
 
     .stat-item {
