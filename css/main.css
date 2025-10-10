@@ -691,11 +691,11 @@ body::before {
 }
 
 .transition-text {
-	color: #ffd700;
+	color: #ef4444; /* vermelho */
 	font-size: 2rem;
 	font-weight: bold;
 	text-align: center;
-	text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+	text-shadow: 0 0 8px rgba(239, 68, 68, 0.8), 0 0 20px rgba(239, 68, 68, 0.9);
 	animation: fadeInOut 2s ease-in-out;
 }
 
