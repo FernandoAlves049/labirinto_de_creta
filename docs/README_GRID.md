@@ -1,71 +1,63 @@
-# 🧱 Grid do Labirinto (Visão Técnica)
+# O Grid do Labirinto
 
-Este documento descreve como o labirinto é representado, desenhado e usado para colisão e pathfinding no jogo.
+O labirinto é tecnicamente uma matriz bidimensional onde cada célula possui um valor que define se é um corredor andável (0) ou uma parede intransponível (1). Este grid é a espinha dorsal das mecânicas do jogo:
 
-## Estrutura do Grid
+- Renderização Visual: dita exatamente onde as paredes pretas e os corredores brancos são desenhados no canvas.
+- Sistema de Colisão: garante que Teseu não atravesse paredes, verificando o grid ao redor antes de permitir o movimento.
+- Inteligência Artificial: o Minotauro usa o mesmo grid para navegar com A*, calculando a rota mais curta até o jogador.
 
-- Dimensões: `maze.width` × `maze.height`
-- Dados: `maze.walls[y][x]`
-  - `0` = corredor (área branca, andável)
-  - `1` = parede (área preta, não andável)
-- Coordenadas:
-  - Grade inteira: `(x, y)` inteiros identificam células.
-  - Espaço contínuo (jogo): `(x, y)` reais, onde o centro de uma célula é `x+0.5, y+0.5`.
-- Tamanho visual da célula: `cellSize` pixels (usado na renderização e escalas do player/boss).
 
-## Renderização
+# 🧱 Como o Grid Funciona
 
-- Fundo branco e paredes pretas (estilo clássico).
-- O labirinto é centralizado no canvas com offsets:
-  - `offsetX = (canvas.width - maze.width * cellSize) / 2`
-  - `offsetY = (canvas.height - maze.height * cellSize) / 2`
-- Para cada célula com parede (`walls[y][x] === 1`):
-  - Desenha um retângulo preto em `(offsetX + x*cellSize, offsetY + y*cellSize)` com tamanho `cellSize`.
-- A saída fica em `exit = (maze.width-2, maze.height-2)` e recebe um glow verde.
+Como o labirinto é representado, desenhado e usado para colisão e caminho.
 
-## Andabilidade e Colisão
+## Como é o Grid
 
-- Funções chave:
-  - `isWall(x, y)`: retorna se uma posição contínua cai numa célula de parede.
-  - `canMoveTo(x, y, r)`: amostra o entorno de `(x,y)` com raio `r` e rejeita se tocar parede ou sair dos limites.
-- Parâmetros importantes de colisão:
-  - Margem de segurança interna: ~`0.02`.
-  - Resolução de amostragem: ~`0.1` (densidade da verificação).
-  - Limites com borda: movimento inválido se qualquer amostra sair para fora do retângulo útil do labirinto.
+- `maze.walls[y][x]`: 0 corredor (branco), 1 parede (preto)
+- Dimensões: `maze.width × maze.height`; célula central em `x+0.5, y+0.5`
+- `cellSize` (px) define a escala visual; coords inteiras (célula) vs contínuas (jogo)
 
-### Contrato (helpers)
-- Entrada: `x, y` em coordenadas contínuas do jogo; `r` em unidades de célula.
-- Saída: `true` se a posição é válida (somente sobre células 0 e sem tocar paredes), `false` caso contrário.
-- Erros evitados: atravessar cantos, “colar” em parede, sair do mapa.
+## Como desenha na tela
 
-## Pathfinding (A*)
+- Estilo: fundo branco, paredes pretas
+- Centralização: `offsetX/Y = (canvas - grid*cellSize)/2`
+- Desenho: para `walls[y][x]===1` → `fillRect(offsetX + x*cellSize, offsetY + y*cellSize, cellSize, cellSize)`
+- Saída: `(width-2, height-2)` com glow verde
 
-- `astarGridPath(start, goal)` opera em células inteiras.
-  - Vizinhança: 4-direções (N, S, L, O).
-  - Heurística: Manhattan.
-  - Caminho retornado: lista de `{x,y}` (células) do início ao objetivo.
-- Uso típico:
-  - `start = { x: floor(minotaur.x), y: floor(minotaur.y) }`
-  - `goal` é célula do jogador ou última posição conhecida.
-  - Waypoint alvo é sempre o centro da célula: `tx = wp.x + 0.5`, `ty = wp.y + 0.5`.
+## Como checa colisão
 
-## Geração do Labirinto
+- `isWall(x,y)`: posição contínua cai em célula de parede?
+- `canMoveTo(x,y,r)`: amostra um raio r; bloqueia se tocar parede/limite
+- Parâmetros: margem ≈ 0.02; passo ≈ 0.1; limites estritos
 
-- O labirinto é gerado de forma procedural ao iniciar/avançar nível, garantindo conectividade.
-- Resultado final disponibiliza `maze.width`, `maze.height`, `maze.walls` (0/1) usados por renderização, colisão e A*.
+### Em resumo (helpers)
+- Entradas: `x,y` contínuos; `r` em células
+- Saída: `true` (válido no branco) ou `false` (toca parede/fora)
+- Evita: atravessar cantos, grudar em parede, sair do mapa
 
-## Integração com o Jogo
+## Como acha o caminho (A*)
 
-- Renderização: usa `maze.walls` e `cellSize` + offsets para desenhar.
-- Movimento/Colisão: `canMoveTo` e `isWall` garantem que entidades só se movem nos corredores (branco).
-- A*: consome o grid (0/1) e gera caminhos coerentes com a malha de células.
+- Opera em células (4 direções); heurística Manhattan
+- Retorna lista `{x,y}` do início ao objetivo
+- Waypoints miram o centro: `tx = wp.x + 0.5`, `ty = wp.y + 0.5`
 
-## Pontos de Ajuste
+## Como o labirinto nasce
 
-- `cellSize`: altera escala visual de todo o labirinto.
-- Densidade da colisão: aumentar a resolução reduz glitches em cantos (custo computacional maior).
-- Frequência de replanejamento (A*): controla responsividade do inimigo.
+- Procedural por nível, garantindo conectividade
+- Expõe `width/height/walls` para render, colisão e A*
+
+## Como tudo se conecta no jogo
+
+- Render: usa `walls` + `cellSize` + offsets
+- Movimento/Colisão: `canMoveTo`/`isWall` mantêm entidades no branco
+- IA: A* consome o grid 0/1 para rotas válidas
+
+## O que dá para ajustar
+
+- `cellSize` (escala visual)
+- Densidade da colisão (precisão vs performance)
+- Frequência de replanejamento do A* (responsividade)
 
 ---
 
-Dica: sempre converta coordenadas contínuas para célula com `floor(x)` e use `+0.5` para mirar no centro ao seguir waypoints.
+Dica: converta contínuo→célula com `floor(x)` e mire no centro (`+0.5`) ao seguir waypoints.
