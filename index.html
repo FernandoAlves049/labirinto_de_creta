@@ -149,6 +149,96 @@
         </div>
     </div>
 
+    <!-- Overlay de Configurações -->
+    <div id="settings-overlay" class="overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">⚙️ Configurações</h2>
+            </div>
+            <div class="modal-content">
+                <div class="settings-grid">
+                    <div class="settings-group">
+                        <h3>🔊 Áudio</h3>
+                        <label class="setting-row">
+                            <input type="checkbox" id="settings-music" checked>
+                            <span>Música habilitada</span>
+                        </label>
+                        <label class="setting-row">
+                            <input type="checkbox" id="settings-sfx" checked>
+                            <span>Efeitos sonoros habilitados</span>
+                        </label>
+                        <label class="setting-row column">
+                            <span>Volume geral</span>
+                            <input type="range" id="settings-volume" min="0" max="100" value="50">
+                        </label>
+                    </div>
+                    <div class="settings-group">
+                        <h3>🎮 Jogabilidade</h3>
+                        <label class="setting-row">
+                            <input type="checkbox" id="settings-thread">
+                            <span>Fio de Ariadne ativo ao iniciar</span>
+                        </label>
+                        <label class="setting-row">
+                            <span>Dificuldade do Minotauro</span>
+                            <select id="settings-difficulty">
+                                <option value="easy">Fácil</option>
+                                <option value="normal" selected>Normal</option>
+                                <option value="hard">Difícil</option>
+                            </select>
+                        </label>
+                        <label class="setting-row">
+                            <input type="checkbox" id="settings-showpath">
+                            <span>Mostrar caminho do Minotauro (debug)</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="btn-settings-close" class="modal-btn tertiary">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay: Como Jogar -->
+    <div id="help-overlay" class="overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">❓ Como Jogar</h2>
+            </div>
+            <div class="modal-content">
+                <div class="help-section">
+                    <h3>🎯 Objetivo</h3>
+                    <p>Guie Teseu (⚔️) pelos corredores brancos até a saída (quadrado 🟩) sem ser capturado pelo Minotauro (🐂).</p>
+                </div>
+                <div class="help-section">
+                    <h3>🎮 Controles</h3>
+                    <ul class="help-list">
+                        <li><span class="kbd">W</span><span class="kbd">A</span><span class="kbd">S</span><span class="kbd">D</span> ou setas — mover</li>
+                        <li><span class="kbd">Shift</span> — correr (2× mais rápido)</li>
+                        <li><span class="kbd">Space</span> — Fio de Ariadne (rastro dourado)</li>
+                        <li><span class="kbd">Esc</span> — voltar ao menu</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <h3>🧠 Minotauro</h3>
+                    <p>Patrulha o labirinto e usa um caminho inteligente (A*) para te alcançar quando te detecta. Fique atento ao som e ao brilho vermelho quando ele entra em perseguição.</p>
+                </div>
+                <div class="help-section">
+                    <h3>🗺️ Legenda</h3>
+                    <ul class="help-list legend">
+                        <li>⚔️ Teseu (você)</li>
+                        <li>🐂 Minotauro</li>
+                        <li>🟩 Saída</li>
+                        <li>🟨 Fio de Ariadne (rastro)</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="btn-help-close" class="modal-btn tertiary">Fechar</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/main.js" defer></script>
 </body>
 </html>

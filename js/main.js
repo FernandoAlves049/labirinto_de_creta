@@ -403,7 +403,8 @@ class LabirintoDeCreta {
 
     // 🎵 CONTROLE DE MÚSICA
     playMusic(musicName) {
-        if (!this.audioInitialized || !this.sounds[musicName] || !this.audioContext) return;
+    if (!this.audioInitialized || !this.sounds[musicName] || !this.audioContext) return;
+    if (this._prefMusicEnabled === false) return;
 
         // Parar música atual com fade-out
         this.stopCurrentMusic();
@@ -494,7 +495,8 @@ class LabirintoDeCreta {
 
     // 🔊 TOCAR EFEITOS SONOROS
     playSound(soundName) {
-        if (!this.audioInitialized || !this.sounds[soundName]) return;
+    if (!this.audioInitialized || !this.sounds[soundName]) return;
+    if (this._prefSfxEnabled === false) return;
         
         try {
             // Aplicar volume mestre aos efeitos sonoros
@@ -1455,8 +1457,11 @@ class LabirintoDeCreta {
 
     updateMinotaur(deltaTime) {
         // 🐂💪 AI DO BOSS CHEFEÃO - MINOTAURO LENDÁRIO
-        const baseSpeed = 0.002;
-        const bossSpeed = baseSpeed * (1 + this.level * 0.1); // Fica mais rápido a cada nível
+    // Dificuldade ajusta a velocidade base do boss
+    const diff = this._prefDifficulty || 'normal';
+    const baseSpeedMap = { easy: 0.0015, normal: 0.002, hard: 0.0026 };
+    const baseSpeed = baseSpeedMap[diff] ?? 0.002;
+    const bossSpeed = baseSpeed * (1 + this.level * 0.1); // Fica mais rápido a cada nível
         
         // Calcular distância para Teseu
         const distToPlayer = Math.sqrt(
@@ -2099,6 +2104,29 @@ class LabirintoDeCreta {
         
         this.ctx.restore();
 
+        // Depuração: mostrar caminho do Minotauro
+        if (this._prefShowPath && Array.isArray(this.minotaur.path) && this.minotaur.path.length) {
+            this.ctx.save();
+            this.ctx.strokeStyle = '#22c55e';
+            this.ctx.lineWidth = 2;
+            this.ctx.setLineDash([6, 4]);
+            this.ctx.beginPath();
+            const first = this.minotaur.path[0];
+            this.ctx.moveTo(
+                offsetX + (first.x + 0.5) * this.cellSize,
+                offsetY + (first.y + 0.5) * this.cellSize
+            );
+            for (let i = 1; i < this.minotaur.path.length; i++) {
+                const wp = this.minotaur.path[i];
+                this.ctx.lineTo(
+                    offsetX + (wp.x + 0.5) * this.cellSize,
+                    offsetY + (wp.y + 0.5) * this.cellSize
+                );
+            }
+            this.ctx.stroke();
+            this.ctx.restore();
+        }
+
         // 🐂💪 DESENHAR BOSS CHEFEÃO - MINOTAURO LENDÁRIO CENTRALIZADO
         this.ctx.save();
         
@@ -2220,61 +2248,83 @@ class LabirintoDeCreta {
     }
 
     showHelp() {
-        this.playSound('buttonClick'); // 🔊 Som de clique
-        alert(`❓ Como Jogar - Labirinto de Creta:
-
-🎯 OBJETIVO:
-• Escape do labirinto sem ser capturado pelo Minotauro
-
-🎮 CONTROLES:
-• WASD ou Setas: Mover Teseu
-• SHIFT: Correr (2x mais rápido)
-• SPACE: Ativar/desativar Fio de Ariadne
-• ESC: Voltar ao menu
-
-🧵 FIO DE ARIADNE:
-• Deixa um rastro dourado do seu caminho
-• Use para não se perder no labirinto
-• Ative/desative com SPACE
-
-🐂 MINOTAURO:
-• Boss lendário que patrulha o labirinto
-• Evite ser capturado por ele!
-• Estados: Patrulha, Caça, Ataque
-
-🔊 ÁUDIO:
-• Trilha sonora dinâmica
-• Efeitos sonoros imersivos
-• Música muda com as situações
-
-🏆 DICAS:
-• Use SHIFT para correr quando necessário
-• O Fio de Ariadne ajuda na navegação
-• Observe o comportamento do Minotauro
-• Escute os sons para antecipar perigos`);
+        this.playSound('buttonClick');
+        const overlay = document.getElementById('help-overlay');
+        if (!overlay) return;
+        overlay.style.display = 'flex';
+        const btnClose = document.getElementById('btn-help-close');
+        btnClose.onclick = () => { overlay.style.display = 'none'; };
     }
 
     showSettings() {
-        alert(`⚙️ Configurações - Labirinto de Creta:
+        this.playSound('buttonClick');
+        const overlay = document.getElementById('settings-overlay');
+        if (!overlay) return;
 
-🎮 CONTROLES:
-• WASD: Movimento principal
-• Setas: Movimento alternativo
-• SHIFT: Corrida (dobra velocidade)
-• SPACE: Fio de Ariadne
-• ESC: Menu
+        // Carregar preferências atuais
+        const musicEnabled = (this._prefMusicEnabled ?? true);
+        const sfxEnabled = (this._prefSfxEnabled ?? true);
+        const masterVol = Math.round((this.masterVolume ?? 0.5) * 100);
+        const threadOnStart = (this._prefThreadOnStart ?? false);
+        const difficulty = (this._prefDifficulty ?? 'normal');
+        const showPath = (this._prefShowPath ?? false);
 
-🎨 GRÁFICOS:
-• Iluminação dinâmica: Ativada
-• Efeitos visuais: Ativados
-• Responsivo: Sim
+        // Aplicar nos controles
+        document.getElementById('settings-music').checked = musicEnabled;
+        document.getElementById('settings-sfx').checked = sfxEnabled;
+        document.getElementById('settings-volume').value = String(masterVol);
+        document.getElementById('settings-thread').checked = threadOnStart;
+        document.getElementById('settings-difficulty').value = difficulty;
+        document.getElementById('settings-showpath').checked = showPath;
 
-🔊 ÁUDIO:
-• Sistema de áudio será implementado em breve
+        // Exibir
+        overlay.style.display = 'flex';
 
-📱 COMPATIBILIDADE:
-• Desktop: Total
-• Mobile: Parcial (sem teclado)`);
+        const applyFromUI = () => {
+            const music = document.getElementById('settings-music').checked;
+            const sfx = document.getElementById('settings-sfx').checked;
+            const vol = Number(document.getElementById('settings-volume').value) / 100;
+            const thread = document.getElementById('settings-thread').checked;
+            const diff = document.getElementById('settings-difficulty').value;
+            const dbgPath = document.getElementById('settings-showpath').checked;
+
+            // Persistir em memória
+            this._prefMusicEnabled = music;
+            this._prefSfxEnabled = sfx;
+            this.masterVolume = vol;
+            this._prefThreadOnStart = thread;
+            this._prefDifficulty = diff;
+            this._prefShowPath = dbgPath;
+
+            // Aplicar efeitos imediatos
+            // Volume: ajusta os ganhos atuais na faixa atual (vai surtir efeito em novas notas/sons)
+            // Música on/off
+            if (!music) {
+                this.stopCurrentMusic();
+            } else if (!this.currentMusic?.isPlaying && this.gameState !== 'menu') {
+                this.playMusic('gameMusic');
+            }
+        };
+
+        // Eventos dos controles (aplicar em tempo real)
+        const bind = (id, evt='change') => document.getElementById(id).addEventListener(evt, applyFromUI);
+        bind('settings-music');
+        bind('settings-sfx');
+        bind('settings-volume','input');
+        bind('settings-thread');
+        bind('settings-difficulty');
+        bind('settings-showpath');
+
+        // Botão fechar
+        const btnClose = document.getElementById('btn-settings-close');
+        const onClose = () => {
+            overlay.style.display = 'none';
+            // Se o usuário ligou o fio por padrão, sincroniza estado se estiver no jogo
+            if (this.gameState === 'playing') {
+                this.threadActive = !!this._prefThreadOnStart;
+            }
+        };
+        btnClose.onclick = onClose;
     }
 }
 
