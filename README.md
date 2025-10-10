@@ -116,6 +116,7 @@ Você também pode ajustar o volume rapidamente pelo botão 🔊 no HUD (canto s
 - [ ] Crossfade suave entre trilhas
 - [ ] Minimap opcional
 - [ ] Persistência de preferências (localStorage)
+- [ ] Tela de login com Google (Firebase Auth)
 
 ---
 
