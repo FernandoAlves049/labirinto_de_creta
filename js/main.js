@@ -1,5 +1,8 @@
 // JOGO LABIRINTO DE CRETA - VERSÃO SIMPLIFICADA
-class LabirintoDeCreta {
+import { astarGridPath as astar } from './pathfinding.js';
+import { generateMazeDynamic, isWall as mazeIsWall, createAdditionalPaths as createExtraPaths, carveMaze as carveMazeAlgo } from './maze.js';
+import { AudioManager } from './audio.js';
+export class LabirintoDeCreta {
     constructor() {
         this.canvas = null;
         this.ctx = null;
@@ -16,13 +19,8 @@ class LabirintoDeCreta {
         this.isTransitioning = false; // Estado de transição entre níveis
         this.cellSize = 30;
         
-        // 🎵 SISTEMA DE ÁUDIO COMPLETO
-        this.audioContext = null;
-        this.sounds = {};
-        this.musicVolume = 0.3;
-        this.sfxVolume = 0.5;
-        this.currentMusic = null;
-        this.audioInitialized = false;
+        // 🎵 ÁUDIO via AudioManager
+        this.audio = new AudioManager();
         this.lastTime = 0;
         this.gameLoop = null;
         // Volume mestre padrão (evita NaN antes do controle de volume iniciar)
@@ -31,7 +29,19 @@ class LabirintoDeCreta {
 
     init() {
         this.setupEventListeners();
-        this.initAudio();
+        // Inicializa áudio modular e sincroniza preferências
+        this.audio.init().then(() => {
+            this.audio.setPrefs({
+                musicEnabled: this._prefMusicEnabled ?? true,
+                sfxEnabled: this._prefSfxEnabled ?? true,
+                masterVolume: this.masterVolume ?? 0.5,
+            });
+        });
+        // Forçar tema escuro permanente (sem alternância)
+        try {
+            this._prefDarkMode = true;
+            this._setDarkStylesheet(true);
+        } catch {}
         this.showLoadingProgress();
     }
 
@@ -43,7 +53,7 @@ class LabirintoDeCreta {
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             
             // Criar todas as trilhas e efeitos sonoros
-            await this.createSounds();
+                await this.audio.createSounds();
             
             this.audioInitialized = true;
             console.log('✅ Sistema de áudio inicializado!');
@@ -407,7 +417,7 @@ class LabirintoDeCreta {
     if (this._prefMusicEnabled === false) return;
 
         // Parar música atual com fade-out
-        this.stopCurrentMusic();
+    this.audio.stopMusic();
 
         const music = this.sounds[musicName];
 
@@ -523,8 +533,8 @@ class LabirintoDeCreta {
             document.getElementById('loading-text').textContent = messages[Math.floor(progress / 20) - 1] || messages[0];
 
             // 🎵 Testar áudio na última etapa
-            if (progress === 80 && this.audioInitialized) {
-                this.playSound('buttonClick');
+            if (progress === 80 && this.audio?.audioInitialized) {
+                this.audio.playSound('buttonClick');
                 console.log('🎵 Áudio testado com sucesso!');
             }
 
@@ -532,7 +542,7 @@ class LabirintoDeCreta {
                 clearInterval(interval);
                 setTimeout(() => {
                     this.showScreen('menu');
-                    this.playMusic('menuMusic'); // 🎵 Música do menu
+                    this.audio.playMusic('menuMusic'); // 🎵 Música do menu
                 }, 1000);
             }
         }, 500);
@@ -652,37 +662,37 @@ class LabirintoDeCreta {
         });
 
         document.getElementById('btn-settings').addEventListener('click', () => {
-            this.playSound('buttonClick'); // 🔊 Som de clique
+            this.audio.playSound('buttonClick'); // 🔊 Som de clique
             this.showSettings();
         });
 
         // Game over buttons
         document.getElementById('btn-retry').addEventListener('click', () => {
-            this.playSound('buttonClick'); // 🔊 Som de clique
+            this.audio.playSound('buttonClick'); // 🔊 Som de clique
             this.hideOverlay('gameover');
             this.restartLevel();
         });
 
         document.getElementById('btn-menu-from-gameover').addEventListener('click', () => {
-            this.playSound('buttonClick'); // 🔊 Som de clique
+            this.audio.playSound('buttonClick'); // 🔊 Som de clique
             this.hideOverlay('gameover');
             this.showScreen('menu');
-            this.playMusic('menuMusic'); // 🎵 Música do menu
+            this.audio.playMusic('menuMusic'); // 🎵 Música do menu
             this.stopGame();
         });
 
         // Victory buttons
         document.getElementById('btn-next-level').addEventListener('click', () => {
-            this.playSound('buttonClick'); // 🔊 Som de clique
+            this.audio.playSound('buttonClick'); // 🔊 Som de clique
             this.hideOverlay('victory');
             this.startLevelTransition();
         });
 
         document.getElementById('btn-menu-from-victory').addEventListener('click', () => {
-            this.playSound('buttonClick'); // 🔊 Som de clique
+            this.audio.playSound('buttonClick'); // 🔊 Som de clique
             this.hideOverlay('victory');
             this.showScreen('menu');
-            this.playMusic('menuMusic'); // 🎵 Música do menu
+            this.audio.playMusic('menuMusic'); // 🎵 Música do menu
             this.stopGame();
         });
 
@@ -701,6 +711,25 @@ class LabirintoDeCreta {
         
         // 🔊 CONTROLE DE VOLUME HUMORÍSTICO
         this.setupVolumeControl();
+
+        // Sem alternância de tema (botão removido do HTML)
+    }
+
+    // 🎨 Tema fixo (escuro) — funções de alternância removidas
+
+    _setDarkStylesheet(enable) {
+        let link = document.getElementById('dark-theme-css');
+        if (!link) {
+            // cria link se não existir
+            link = document.createElement('link');
+            link.id = 'dark-theme-css';
+            link.rel = 'stylesheet';
+            link.href = 'css/dark.css';
+            document.head.appendChild(link);
+        }
+        // Sempre ativo
+        link.disabled = false;
+        link.removeAttribute('disabled');
     }
 
     // 🎨 SISTEMA DE CARREGAMENTO DE TEXTURAS
@@ -789,7 +818,7 @@ class LabirintoDeCreta {
             
             // Som de feedback
             if (this.audioInitialized) {
-                this.playSound('buttonClick');
+                this.audio.playSound('buttonClick');
             }
         };
         
@@ -1036,10 +1065,10 @@ class LabirintoDeCreta {
     }
 
     startNewGame() {
-        this.playSound('buttonClick'); // 🔊 Som de clique
+    this.audio.playSound('buttonClick'); // 🔊 Som de clique
         this.level = 1;
         this.showScreen('game');
-        this.playMusic('gameMusic'); // 🎵 Música de jogo
+                this.audio.playMusic('gameMusic'); // 🎵 Música de jogo
         this.startLevel();
     }
 
@@ -1084,116 +1113,26 @@ class LabirintoDeCreta {
     }
 
     generateMaze() {
-        // 🏛️ CANVAS DINÂMICO BASEADO NO NÍVEL! 😂
-        
-        // Tamanho da célula diminui conforme avança nos níveis (mais difícil)
-        const baseCellSize = 20; // Começa com células grandes
-        const cellSizeReduction = Math.min(8, this.level * 0.5); // Reduz gradualmente
-        const targetCellSize = Math.max(8, baseCellSize - cellSizeReduction);
-        
-        console.log(`🎮 Nível ${this.level}: CellSize = ${targetCellSize}px (Base: ${baseCellSize}, Redução: ${cellSizeReduction})`);
-        
-        // Tamanho do canvas cresce com o nível
-        const levelMultiplier = 1 + (this.level - 1) * 0.1; // Cresce 10% por nível
-        const baseCanvasWidth = 600;
-        const baseCanvasHeight = 450;
-        
-        const canvasWidth = Math.min(1000, baseCanvasWidth * levelMultiplier); // Máx 1000px
-        const canvasHeight = Math.min(750, baseCanvasHeight * levelMultiplier); // Máx 750px
-        
-        // Atualizar tamanho do canvas
-        this.canvas.width = canvasWidth;
-        this.canvas.height = canvasHeight;
-        this.canvas.style.width = `${canvasWidth}px`;
-        this.canvas.style.height = `${canvasHeight}px`;
-        
-        console.log(`🗺️ Canvas Nivel ${this.level}: ${canvasWidth}x${canvasHeight}px (Mult: ${levelMultiplier.toFixed(1)}x)`);
-        
-        // Calcular dimensões do labirinto
-        const width = Math.floor(canvasWidth / targetCellSize);
-        const height = Math.floor(canvasHeight / targetCellSize);
-        
-        // Garantir que seja ímpar para algoritmo de labirinto
-        const mazeWidth = width % 2 === 0 ? width - 1 : width;
-        const mazeHeight = height % 2 === 0 ? height - 1 : height;
-        
-        console.log(`🏛️ Gerando labirinto: ${mazeWidth}x${mazeHeight} (Canvas: ${canvasWidth}x${canvasHeight})`);
-        
-        this.maze = {
-            width: mazeWidth,
-            height: mazeHeight,
-            walls: []
-        };
-
-        // Initialize maze with walls
-        for (let y = 0; y < mazeHeight; y++) {
-            this.maze.walls[y] = [];
-            for (let x = 0; x < mazeWidth; x++) {
-                this.maze.walls[y][x] = 1;
-            }
-        }
-
-        // Create paths using recursive backtracking
-        this.carveMaze(1, 1);
-        
-        // Garantir que início e fim estejam livres
-        this.maze.walls[1][1] = 0;
-        this.maze.walls[mazeHeight - 2][mazeWidth - 2] = 0;
-        
-        // Criar mais caminhos para o Minotauro se mover
-        this.createAdditionalPaths();
-        
-        // Calcular tamanho da célula para renderização
-        this.cellSize = Math.min(canvasWidth / mazeWidth, canvasHeight / mazeHeight);
-        
-        console.log(`✅ Labirinto gerado! CellSize: ${this.cellSize.toFixed(1)}px`);
+        // Usar módulo de geração de labirinto
+        const { maze, dims } = generateMazeDynamic(this.level);
+        this.maze = maze;
+        // Atualizar canvas conforme dimensões calculadas
+        this.canvas.width = dims.canvasWidth;
+        this.canvas.height = dims.canvasHeight;
+        this.canvas.style.width = `${dims.canvasWidth}px`;
+        this.canvas.style.height = `${dims.canvasHeight}px`;
+        this.cellSize = dims.cellSize;
+        console.log(`✅ Labirinto gerado (modular): ${maze.width}x${maze.height} | CellSize: ${this.cellSize.toFixed(1)}px`);
     }
 
     createAdditionalPaths() {
-        // Criar caminhos adicionais para melhor movimentação do Minotauro
-        const pathsToCreate = Math.floor(this.maze.width * this.maze.height * 0.05); // 5% de caminhos extras
-        
-        for (let i = 0; i < pathsToCreate; i++) {
-            const x = 1 + Math.floor(Math.random() * (this.maze.width - 2));
-            const y = 1 + Math.floor(Math.random() * (this.maze.height - 2));
-            
-            // Criar pequenos caminhos extras
-            if (this.maze.walls[y] && this.maze.walls[y][x]) {
-                this.maze.walls[y][x] = 0;
-                
-                // Conectar com caminhos vizinhos se possível
-                const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
-                for (const [dx, dy] of directions) {
-                    const nx = x + dx;
-                    const ny = y + dy;
-                    if (nx > 0 && nx < this.maze.width - 1 && ny > 0 && ny < this.maze.height - 1) {
-                        if (Math.random() < 0.3 && this.maze.walls[ny] && this.maze.walls[ny][nx]) {
-                            this.maze.walls[ny][nx] = 0;
-                        }
-                    }
-                }
-            }
-        }
+        // Delegar ao módulo
+        createExtraPaths(this.maze);
     }
 
     carveMaze(x, y) {
-        const dirs = [[0, 2], [2, 0], [0, -2], [-2, 0]];
-        dirs.sort(() => Math.random() - 0.5);
-
-        this.maze.walls[y][x] = 0;
-
-        for (const [dx, dy] of dirs) {
-            const nx = x + dx;
-            const ny = y + dy;
-
-            if (nx > 0 && nx < this.maze.width - 1 && 
-                ny > 0 && ny < this.maze.height - 1 && 
-                this.maze.walls[ny][nx] === 1) {
-                
-                this.maze.walls[y + dy / 2][x + dx / 2] = 0;
-                this.carveMaze(nx, ny);
-            }
-        }
+        // Delegar ao módulo
+        carveMazeAlgo(this.maze, x, y);
     }
 
     resetPlayer() {
@@ -1400,7 +1339,7 @@ class LabirintoDeCreta {
         
         // 🔊 SOM DO FIO DE ARIADNE
         if (this.threadActive && !wasThreadActive) {
-            this.playSound('threadActivate');
+            this.audio.playSound('threadActivate');
         }
 
         // 🚧 MOVIMENTO COM COLISÃO ULTRA-SEGURA
@@ -1437,9 +1376,9 @@ class LabirintoDeCreta {
         // 🔊 SONS DE MOVIMENTO
         if (actuallyMoved && Math.random() < 0.1) { // 10% chance por frame
             if (this.isRunning) {
-                this.playSound('runFootstep');
+                this.audio.playSound('runFootstep');
             } else {
-                this.playSound('footstep');
+                this.audio.playSound('footstep');
             }
         }
 
@@ -1491,7 +1430,7 @@ class LabirintoDeCreta {
             
             // 🔊 Som de ataque se mudou para ATTACK
             if (previousState !== 'ATTACK' && Math.random() < 0.3) {
-                this.playSound('minotaurAttack');
+                this.audio.playSound('minotaurAttack');
             }
             
             // Ataque direcionado muito rápido
@@ -1507,8 +1446,8 @@ class LabirintoDeCreta {
             
             // 🔊 Som de rugido se mudou para CHASE
             if (previousState !== 'CHASE' && Math.random() < 0.2) {
-                this.playSound('minotaurRoar');
-                this.playMusic('chaseMusic'); // Música mais intensa
+                this.audio.playSound('minotaurRoar');
+                this.audio.playMusic('chaseMusic'); // Música mais intensa
             }
             
             // Caça rápida e direcionada
@@ -1517,7 +1456,7 @@ class LabirintoDeCreta {
             
             // 🔊 Batimentos cardíacos quando perseguido
             if (Math.random() < 0.05) { // 5% chance por frame
-                this.playSound('heartbeat');
+                this.audio.playSound('heartbeat');
             }
             
         } else if (this.minotaur.huntTimer > 0) {
@@ -1541,7 +1480,7 @@ class LabirintoDeCreta {
             
             // 🔊 Voltar música normal se saiu da perseguição
             if (previousState === 'CHASE' || previousState === 'ATTACK') {
-                this.playMusic('gameMusic');
+                this.audio.playMusic('gameMusic');
             }
             
             this.minotaur.lastDir -= deltaTime;
@@ -1718,54 +1657,31 @@ class LabirintoDeCreta {
         return Math.random() > 0.3; // 70% chance of seeing player when close
     }
 
+    // Raycast simples no grid para verificar linha de visão livre entre dois pontos
+    _hasClearLineBetween(x0, y0, x1, y1) {
+        const dx = x1 - x0;
+        const dy = y1 - y0;
+        const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+        const steps = Math.max(2, Math.ceil(dist * 12)); // amostragem fina por unidade
+        for (let i = 1; i < steps; i++) { // ignora os pontos finais
+            const t = i / steps;
+            const x = x0 + dx * t;
+            const y = y0 + dy * t;
+            const gx = Math.floor(x);
+            const gy = Math.floor(y);
+            if (gx < 0 || gy < 0 || gx >= this.maze.width || gy >= this.maze.height) return false;
+            if (this.maze.walls[gy]?.[gx] === 1) return false; // parede bloqueia linha de visão
+        }
+        return true;
+    }
+
     isWall(x, y) {
-        const gx = Math.floor(x);
-        const gy = Math.floor(y);
-        return this.maze.walls[gy]?.[gx] === 1;
+        return mazeIsWall(this.maze, x, y);
     }
 
     // 🔎 A* em grade: retorna caminho de células {x,y} do start ao goal (4-direções)
     astarGridPath(start, goal) {
-        const W = this.maze.width, H = this.maze.height;
-        const walk = (x, y) => x >= 0 && y >= 0 && x < W && y < H && this.maze.walls[y][x] === 0;
-        if (!walk(goal.x, goal.y) || !walk(start.x, start.y)) return [];
-        const h = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
-        const key = (x, y) => `${x},${y}`;
-
-        const open = [{...start}];
-        const g = new Map([[key(start.x, start.y), 0]]);
-        const parent = new Map();
-
-        while (open.length) {
-            open.sort((a, b) => (g.get(key(a.x,a.y)) + h(a, goal)) - (g.get(key(b.x,b.y)) + h(b, goal)));
-            const cur = open.shift();
-            if (cur.x === goal.x && cur.y === goal.y) {
-                // reconstruir caminho
-                const path = [];
-                let k = key(cur.x, cur.y);
-                let node = cur;
-                while (parent.has(k)) {
-                    path.push({ x: node.x, y: node.y });
-                    const p = parent.get(k);
-                    node = { x: p[0], y: p[1] };
-                    k = key(node.x, node.y);
-                }
-                path.reverse();
-                return path;
-            }
-            for (const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
-                const nx = cur.x + dx, ny = cur.y + dy;
-                if (!walk(nx, ny)) continue;
-                const nk = key(nx, ny);
-                const tentative = (g.get(key(cur.x, cur.y)) ?? Infinity) + 1;
-                if (tentative < (g.get(nk) ?? Infinity)) {
-                    g.set(nk, tentative);
-                    parent.set(nk, [cur.x, cur.y]);
-                    if (!open.find(n => n.x === nx && n.y === ny)) open.push({ x: nx, y: ny });
-                }
-            }
-        }
-        return [];
+        return astar(this.maze, start, goal);
     }
 
     // 🚧 Colisão por amostragem no entorno do centro (garante ficar no "branco")
@@ -1828,6 +1744,8 @@ class LabirintoDeCreta {
     checkCollisions() {
         // Não verificar colisões se já está em transição
         if (this.isTransitioning) return;
+        // Apenas checar durante o jogo
+        if (this.gameState !== 'playing') return;
         
         // Check win condition
         const exitX = this.maze.width - 2;
@@ -1839,22 +1757,24 @@ class LabirintoDeCreta {
             return;
         }
 
-        // Check minotaur collision
-        const dist = Math.sqrt(
-            Math.pow(this.player.x - this.minotaur.x, 2) + 
-            Math.pow(this.player.y - this.minotaur.y, 2)
-        );
-
-        if (dist < 0.8) {
+        // Check minotaur collision (soma dos raios + LOS livre)
+        const dx = this.player.x - this.minotaur.x;
+        const dy = this.player.y - this.minotaur.y;
+        const dist2 = dx*dx + dy*dy;
+        const playerR = 0.45; // deve bater com o desenho
+        const minotaurR = 0.43; // raio lógico do boss
+        const capture = playerR + minotaurR - 0.03; // folga pequena
+        const capture2 = capture * capture;
+        if (dist2 <= capture2 && this._hasClearLineBetween(this.minotaur.x, this.minotaur.y, this.player.x, this.player.y)) {
             this.gameOver();
         }
     }
 
     gameWon() {
         // 🔊 SONS DE VITÓRIA
-        this.playSound('portalEnter');
-        this.playSound('levelComplete');
-        this.playMusic('victoryMusic');
+    this.audio.playSound('portalEnter');
+    this.audio.playSound('levelComplete');
+    this.audio.playMusic('victoryMusic');
         
         // Não mudar gameState ainda, apenas iniciar transição
         this.startLevelTransition();
@@ -1891,9 +1811,9 @@ class LabirintoDeCreta {
 
     gameOver() {
         // 🔊 SONS DE GAME OVER
-        this.playSound('minotaurRoar'); // Rugido de vitória do Minotauro
-        this.playSound('gameOver');
-        this.stopCurrentMusic();
+    this.audio.playSound('minotaurRoar'); // Rugido de vitória do Minotauro
+    this.audio.playSound('gameOver');
+    this.audio.stopMusic();
         
         this.gameState = 'gameover';
         this.showOverlay('gameover');
@@ -2248,7 +2168,7 @@ class LabirintoDeCreta {
     }
 
     showHelp() {
-        this.playSound('buttonClick');
+    this.audio.playSound('buttonClick');
         const overlay = document.getElementById('help-overlay');
         if (!overlay) return;
         overlay.style.display = 'flex';
@@ -2257,12 +2177,12 @@ class LabirintoDeCreta {
     }
 
     showSettings() {
-        this.playSound('buttonClick');
+    this.audio.playSound('buttonClick');
         const overlay = document.getElementById('settings-overlay');
         if (!overlay) return;
 
         // Carregar preferências atuais
-        const musicEnabled = (this._prefMusicEnabled ?? true);
+    const musicEnabled = (this._prefMusicEnabled ?? true);
         const sfxEnabled = (this._prefSfxEnabled ?? true);
         const masterVol = Math.round((this.masterVolume ?? 0.5) * 100);
         const threadOnStart = (this._prefThreadOnStart ?? false);
@@ -2275,7 +2195,7 @@ class LabirintoDeCreta {
         document.getElementById('settings-volume').value = String(masterVol);
         document.getElementById('settings-thread').checked = threadOnStart;
         document.getElementById('settings-difficulty').value = difficulty;
-        document.getElementById('settings-showpath').checked = showPath;
+    document.getElementById('settings-showpath').checked = showPath;
 
         // Exibir
         overlay.style.display = 'flex';
@@ -2300,9 +2220,9 @@ class LabirintoDeCreta {
             // Volume: ajusta os ganhos atuais na faixa atual (vai surtir efeito em novas notas/sons)
             // Música on/off
             if (!music) {
-                this.stopCurrentMusic();
-            } else if (!this.currentMusic?.isPlaying && this.gameState !== 'menu') {
-                this.playMusic('gameMusic');
+                this.audio.stopMusic();
+            } else if (!this.audio.currentMusic?.isPlaying && this.gameState !== 'menu') {
+                this.audio.playMusic('gameMusic');
             }
         };
 
@@ -2313,7 +2233,7 @@ class LabirintoDeCreta {
         bind('settings-volume','input');
         bind('settings-thread');
         bind('settings-difficulty');
-        bind('settings-showpath');
+    bind('settings-showpath');
 
         // Botão fechar
         const btnClose = document.getElementById('btn-settings-close');

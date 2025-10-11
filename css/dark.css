@@ -1,0 +1,81 @@
+/* Tema Escuro - Labirinto de Creta */
+
+/* Fundo geral e cor de texto */
+body {
+  color: #e5e7eb !important;
+  background:
+    radial-gradient(circle at 20% 80%, rgba(17, 24, 39, 0.6) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(88, 28, 135, 0.25) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(6, 78, 59, 0.25) 0%, transparent 50%),
+    radial-gradient(circle at 60% 60%, rgba(124, 45, 18, 0.25) 0%, transparent 50%),
+    linear-gradient(135deg, #0b1020 0%, #111827 25%, #0f172a 50%, #064e3b 75%, #7c2d12 100%) !important;
+  background-attachment: fixed !important;
+}
+
+/* Painéis translúcidos e bordas */
+.loading-container,
+.menu-container,
+.modal,
+.volume-popover,
+.game-hud,
+.screen.active .menu-container,
+.screen.active .loading-container {
+  background: rgba(0, 0, 0, 0.5) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Ajuste de textos do HUD */
+.hud-label,
+.hud-value,
+.game-title,
+.logo-title,
+.logo-subtitle,
+.loading-text {
+  color: #e5e7eb !important;
+}
+
+/* Botão de tema no menu */
+.menu-theme {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+}
+.theme-button {
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  color: #e5e7eb;
+  border-radius: 12px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.theme-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Overlays */
+.overlay {
+  background-color: rgba(0, 0, 0, 0.55) !important;
+}
+
+/* Sliders e controles básicos */
+input[type='range'] {
+  filter: brightness(0.9) contrast(1.1);
+}
+
+/* Popover de volume */
+.volume-popover {
+  background: rgba(0, 0, 0, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #e5e7eb !important;
+}
+
+/* Modais */
+.modal {
+  color: #e5e7eb !important;
+}
+
+/* Rodapé do menu */
+.version-info,
+.controls-hint {
+  color: rgba(229, 231, 235, 0.9) !important;
+}
