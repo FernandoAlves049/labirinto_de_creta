@@ -105,15 +105,32 @@ export class AudioManager {
         this.currentMusic.gainNodes.forEach(gain => {
           try { gain.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + 1); } catch(e) {}
         });
-        const toStopOsc = [...this.currentMusic.oscillators];
-        const toStopGains = [...this.currentMusic.gainNodes];
-        const toClearIntervals = this.currentMusic.intervals ? [...this.currentMusic.intervals] : [];
+
+        const toStopOsc = this.currentMusic.oscillators;
+        const toStopGains = this.currentMusic.gainNodes;
+        const toClearIntervals = this.currentMusic.intervals || [];
+
         this.currentMusic.isPlaying = false;
+
         setTimeout(() => {
-          toStopOsc.forEach(osc => { try { osc.stop(); osc.disconnect(); } catch(e) {} });
-          toStopGains.forEach(g => { try { g.disconnect(); } catch(e) {} });
+          toStopOsc.forEach(osc => {
+            try {
+              osc.stop();
+              osc.disconnect();
+            } catch(e) {}
+          });
+          toStopGains.forEach(g => {
+            try {
+              g.disconnect();
+            } catch(e) {}
+          });
           toClearIntervals.forEach(id => clearInterval(id));
         }, 1000);
+
+        this.currentMusic.oscillators = [];
+        this.currentMusic.gainNodes = [];
+        this.currentMusic.intervals = [];
+
       } catch (error) {
         console.warn('⚠️ Erro ao parar música:', error);
       }
