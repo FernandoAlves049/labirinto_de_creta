@@ -102,37 +102,51 @@ export class AudioManager {
   stopMusic() {
     if (this.currentMusic && this.currentMusic.isPlaying) {
       try {
-        this.currentMusic.gainNodes.forEach(gain => {
-          try { gain.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + 1); } catch(e) {}
+        const music = this.currentMusic;
+        music.isPlaying = false;
+
+        // Limpa os intervalos imediatamente
+        if (music.intervals) {
+          music.intervals.forEach(id => clearInterval(id));
+          music.intervals = [];
+        }
+
+        // Faz o fade out do som
+        music.gainNodes.forEach(gain => {
+          try {
+            gain.gain.cancelScheduledValues(this.audioContext.currentTime);
+            gain.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + 0.5);
+          } catch (e) {
+            // Ignora erros se o contexto já foi fechado
+          }
         });
 
-        const toStopOsc = this.currentMusic.oscillators;
-        const toStopGains = this.currentMusic.gainNodes;
-        const toClearIntervals = this.currentMusic.intervals || [];
-
-        this.currentMusic.isPlaying = false;
-
+        // Para e desconecta os nós após o fade out
         setTimeout(() => {
-          toStopOsc.forEach(osc => {
+          music.oscillators.forEach(osc => {
             try {
               osc.stop();
               osc.disconnect();
-            } catch(e) {}
+            } catch (e) {
+               // Ignora erros
+            }
           });
-          toStopGains.forEach(g => {
+          music.gainNodes.forEach(gain => {
             try {
-              g.disconnect();
-            } catch(e) {}
+              gain.disconnect();
+            } catch (e) {
+              // Ignora erros
+            }
           });
-          toClearIntervals.forEach(id => clearInterval(id));
-        }, 1000);
-
-        this.currentMusic.oscillators = [];
-        this.currentMusic.gainNodes = [];
-        this.currentMusic.intervals = [];
+           // Limpa as referências para permitir a coleta de lixo
+          music.oscillators = [];
+          music.gainNodes = [];
+        }, 500); // Tempo correspondente ao fade out
 
       } catch (error) {
         console.warn('⚠️ Erro ao parar música:', error);
+      } finally {
+        this.currentMusic = null;
       }
     }
   }
