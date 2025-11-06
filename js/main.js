@@ -890,119 +890,39 @@ export class LabirintoDeCreta {
     }
 
     createTextureCanvas() {
-        // 🏛️ TEXTURAS INSPIRADAS NAS IMAGENS DALL-E
-        
-        // TEXTURA DE CHÃO SIMPLES (baseada na primeira imagem)
+        // Canvas para o chão
         const floorCanvas = document.createElement('canvas');
-        floorCanvas.width = 256;
-        floorCanvas.height = 256;
+        floorCanvas.width = 128;
+        floorCanvas.height = 128;
         const floorCtx = floorCanvas.getContext('2d');
-        
-        // Base bege/creme como suas imagens DALL-E
-        const floorGrad = floorCtx.createRadialGradient(128, 128, 0, 128, 128, 180);
-        floorGrad.addColorStop(0, '#f4e4bc'); // Bege claro
-        floorGrad.addColorStop(0.5, '#e6d3a3'); // Bege médio  
-        floorGrad.addColorStop(1, '#d4b896'); // Bege escuro
+
+        const floorGrad = floorCtx.createRadialGradient(64, 64, 0, 64, 64, 90);
+        floorGrad.addColorStop(0, '#f4e4bc');
+        floorGrad.addColorStop(0.5, '#e6d3a3');
+        floorGrad.addColorStop(1, '#d4b896');
         floorCtx.fillStyle = floorGrad;
-        floorCtx.fillRect(0, 0, 256, 256);
-        
-        // Padrão de pedras irregulares inspirado no DALL-E
-        floorCtx.strokeStyle = '#c19a6b';
-        floorCtx.lineWidth = 1.5;
-        
-        // Criar padrão de blocos irregulares
-        const stonePattern = [
-            {x: 0, y: 0, w: 64, h: 48},
-            {x: 64, y: 0, w: 80, h: 32},
-            {x: 144, y: 0, w: 56, h: 64},
-            {x: 0, y: 48, w: 48, h: 56},
-            {x: 48, y: 32, w: 72, h: 40},
-            // Adicionar mais blocos...
-        ];
-        
-        stonePattern.forEach(stone => {
-            // Desenhar contorno da pedra
-            floorCtx.strokeRect(stone.x, stone.y, stone.w, stone.h);
-            
-            // Adicionar variação de cor
-            const variation = Math.random() * 0.3;
-            floorCtx.fillStyle = `rgba(212, 184, 150, ${0.1 + variation})`;
-            floorCtx.fillRect(stone.x + 1, stone.y + 1, stone.w - 2, stone.h - 2);
-            
-            // Rachaduras internas
-            if (Math.random() > 0.7) {
-                floorCtx.strokeStyle = '#b8956d';
-                floorCtx.lineWidth = 0.5;
-                floorCtx.beginPath();
-                floorCtx.moveTo(stone.x + stone.w * 0.2, stone.y + stone.h * 0.3);
-                floorCtx.lineTo(stone.x + stone.w * 0.8, stone.y + stone.h * 0.7);
-                floorCtx.stroke();
-                floorCtx.lineWidth = 1.5;
-                floorCtx.strokeStyle = '#c19a6b';
-            }
-        });
-        
+        floorCtx.fillRect(0, 0, 128, 128);
+
         this.textures.floorSimple = floorCanvas;
-        
-        // TEXTURA DE PAREDE ORNAMENTADA (baseada na terceira imagem)
-        const wallCanvas = document.createElement('canvas');
-        wallCanvas.width = 256;
-        wallCanvas.height = 256;
-        const wallCtx = wallCanvas.getContext('2d');
-        
-        // Base dourada inspirada nas imagens DALL-E
-        const wallGrad = wallCtx.createLinearGradient(0, 0, 256, 256);
-        wallGrad.addColorStop(0, '#f4d03f'); // Dourado claro
-        wallGrad.addColorStop(0.5, '#f1c40f'); // Dourado médio
-        wallGrad.addColorStop(1, '#d68910'); // Dourado escuro
-        wallCtx.fillStyle = wallGrad;
-        wallCtx.fillRect(0, 0, 256, 256);
-        
-        // Padrão geométrico grego inspirado no DALL-E
-        wallCtx.strokeStyle = '#b7950b';
-        wallCtx.lineWidth = 3;
-        
-        // Grid de blocos com padrões gregos
-        for (let i = 0; i < 4; i++) {
-            for (let j = 0; j < 4; j++) {
-                const blockX = i * 64;
-                const blockY = j * 64;
-                
-                // Contorno do bloco
-                wallCtx.strokeRect(blockX, blockY, 64, 64);
-                
-                // Adicionar padrões gregos aleatórios
-                const patternType = (i + j) % 4;
-                
-                wallCtx.strokeStyle = '#8b6914';
-                wallCtx.lineWidth = 2;
-                
-                switch(patternType) {
-                    case 0: // Espiral
-                        this.drawSpiral(wallCtx, blockX + 32, blockY + 32, 20);
-                        break;
-                    case 1: // Meander
-                        this.drawMeander(wallCtx, blockX + 8, blockY + 8, 48);
-                        break;
-                    case 2: // Cruz grega
-                        this.drawGreekCross(wallCtx, blockX + 32, blockY + 32, 20);
-                        break;
-                    case 3: // Padrão simples
-                        wallCtx.strokeRect(blockX + 16, blockY + 16, 32, 32);
-                        break;
-                }
-                
-                wallCtx.strokeStyle = '#b7950b';
-                wallCtx.lineWidth = 3;
-            }
-        }
-        
-        this.textures.wallSimple = wallCanvas;
         this.textures.floorDetailed = floorCanvas;
+
+        // Canvas para a parede
+        const wallCanvas = document.createElement('canvas');
+        wallCanvas.width = 128;
+        wallCanvas.height = 128;
+        const wallCtx = wallCanvas.getContext('2d');
+
+        const wallGrad = wallCtx.createLinearGradient(0, 0, 128, 128);
+        wallGrad.addColorStop(0, '#f4d03f');
+        wallGrad.addColorStop(0.5, '#f1c40f');
+        wallGrad.addColorStop(1, '#d68910');
+        wallCtx.fillStyle = wallGrad;
+        wallCtx.fillRect(0, 0, 128, 128);
+
+        this.textures.wallSimple = wallCanvas;
         this.textures.wallOrnate = wallCanvas;
-        
+
         this.texturesLoaded = true;
-        console.log('🎨✨ Texturas inspiradas no DALL-E criadas! Prontas para uso!');
     }
 
     // Removido: carregamento de imagens reais (somente texturas procedurais são usadas)
@@ -1383,12 +1303,15 @@ export class LabirintoDeCreta {
         }
 
         // Add to trail
-        if (this.threadActive && this.player.trail.length % 5 === 0) {
-            this.player.trail.push({
-                x: this.player.x,
-                y: this.player.y
-            });
-            if (this.player.trail.length > 100) {
+        if (this.threadActive) {
+            const lastPoint = this.player.trail[this.player.trail.length - 1];
+            const distThreshold = 0.8;
+            if (!lastPoint || Math.hypot(this.player.x - lastPoint.x, this.player.y - lastPoint.y) > distThreshold) {
+                this.player.trail.push({ x: this.player.x, y: this.player.y });
+            }
+
+            const MAX_TRAIL_LENGTH = 150;
+            if (this.player.trail.length > MAX_TRAIL_LENGTH) {
                 this.player.trail.shift();
             }
         }
@@ -1580,7 +1503,7 @@ export class LabirintoDeCreta {
             const start = { x: Math.floor(this.minotaur.x), y: Math.floor(this.minotaur.y) };
             this.minotaur.path = this.astarGridPath(start, goalCell);
             this.minotaur.pathGoal = goalCell;
-            this.minotaur.nextRepath = now + 500; // repath a cada 500ms
+            this.minotaur.nextRepath = now + 750; // repath a cada 750ms
         }
 
         // Aumentar agressão com o tempo (boss fica mais perigoso)
@@ -1653,8 +1576,10 @@ export class LabirintoDeCreta {
     }
 
     hasLineOfSight() {
-        // Simplified line of sight
-        return Math.random() > 0.3; // 70% chance of seeing player when close
+        if (Math.random() < 0.1) {
+            return this._hasClearLineBetween(this.minotaur.x, this.minotaur.y, this.player.x, this.player.y);
+        }
+        return false;
     }
 
     // Raycast simples no grid para verificar linha de visão livre entre dois pontos
