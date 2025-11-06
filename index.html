@@ -48,6 +48,10 @@
                     <span>⚔️</span>
                     <span>Iniciar Jogo</span>
                 </button>
+                <button id="btn-levels" class="menu-btn tertiary">
+                    <span>📜</span>
+                    <span>Escolher Nível</span>
+                </button>
                 <button id="btn-help" class="menu-btn secondary">
                     <span>❓</span>
                     <span>Como Jogar</span>
@@ -332,6 +336,21 @@
 
     </script>
     <script type="module" src="js/usuario-ui.js"></script>
+    <!-- Level selector overlay -->
+    <div id="level-select-overlay" class="overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">📜 Selecionar Nível</h2>
+            </div>
+            <div class="modal-content">
+                <!-- grid será inserida por js/level-selector.js -->
+            </div>
+            <div class="modal-actions">
+                <button id="btn-close-levels" class="modal-btn tertiary">Fechar</button>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="js/level-selector.js"></script>
     <!-- Edit Profile Modal -->
     <div id="edit-profile-modal" class="overlay">
         <div class="modal" role="dialog" aria-modal="true" aria-labelledby="edit-profile-title">

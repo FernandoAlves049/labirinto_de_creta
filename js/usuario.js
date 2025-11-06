@@ -33,7 +33,8 @@ class Usuario {
 				wins: 0,
 				bestTimeMs: null,
 			},
-			history: [] // array de objetos { when, level, timeMs, result }
+			history: [], // array de objetos { when, level, timeMs, result }
+			unlockedLevels: [1] // níveis desbloqueados (começa com 1)
 		};
 	}
 
@@ -116,10 +117,30 @@ class Usuario {
 			if (this._data.stats.bestTimeMs === null || timeMs < this._data.stats.bestTimeMs) {
 				this._data.stats.bestTimeMs = timeMs;
 			}
+				// desbloquear próximo nível automaticamente
+				try {
+					const next = Number(level) + 1;
+					if (!this._data.unlockedLevels.includes(next)) this._data.unlockedLevels.push(next);
+				} catch (e) {}
 		}
 		this.save();
 		return this;
 	}
+
+		// Níveis: verificar e desbloquear
+		isLevelUnlocked(level) {
+			return this._data.unlockedLevels && this._data.unlockedLevels.includes(Number(level));
+		}
+
+		unlockLevel(level) {
+			const n = Number(level);
+			if (!this._data.unlockedLevels) this._data.unlockedLevels = [];
+			if (!this._data.unlockedLevels.includes(n)) {
+				this._data.unlockedLevels.push(n);
+				this.save();
+			}
+			return this;
+		}
 
 	// Exporta os dados do usuário como JSON (string)
 	exportJSON() {

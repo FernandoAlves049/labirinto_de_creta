@@ -645,6 +645,15 @@ body.theme-dark{
 	animation: overlayFade 0.5s ease-out;
 }
 
+/* Mostrar overlays quando tiverem a classe active */
+.overlay.active {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 1;
+	visibility: visible;
+}
+
 @keyframes overlayFade {
 	from { opacity: 0; }
 	to { opacity: 1; }
@@ -934,6 +943,16 @@ body.theme-dark{
 	.menu-container{ margin: 1rem; max-width: calc(100% - 2rem); }
 }
 
+/* Level selector grid */
+.level-grid-wrap { display:flex; justify-content:center; }
+.level-grid { display:grid; grid-template-columns: repeat(6, 56px); gap:12px; justify-content:center; }
+.level-cell { width:56px; height:56px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); background: rgba(255,255,255,0.02); color:var(--text-color); cursor:pointer; font-weight:700 }
+.level-cell.locked { opacity:0.35; filter:grayscale(30%); cursor:not-allowed }
+.level-cell.unlocked { background: linear-gradient(90deg,#ffd166,#ff8a3d); color:#111 }
+.level-grid .level-cell:hover { transform: translateY(-4px); box-shadow:0 8px 20px rgba(0,0,0,0.45) }
+
+@media (max-width: 700px) { .level-grid { grid-template-columns: repeat(4, 1fr); } }
+
 /* Edit Profile modal tweaks */
 #edit-profile-modal .modal {
 	width: 420px; max-width: 92vw; padding: 1.6rem; border-radius: 14px;
@@ -941,6 +960,9 @@ body.theme-dark{
 
 #edit-profile-modal .modal-content { display:flex; flex-direction:column; gap:0.8rem; }
 #edit-profile-modal input[type="text"]{ padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.32); color:var(--text-color) }
+
+/* Forçar overlay do modal de edição acima de tudo */
+#edit-profile-modal { z-index: 12000; }
 
 
 

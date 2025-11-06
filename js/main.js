@@ -666,6 +666,15 @@ export class LabirintoDeCreta {
             this.showSettings();
         });
 
+        // Abrir seletor de níveis
+        const btnLevels = document.getElementById('btn-levels');
+        if (btnLevels) btnLevels.addEventListener('click', () => {
+            const overlay = document.getElementById('level-select-overlay');
+            if (overlay) overlay.classList.add('active');
+            // refresh grid via LevelSelector if disponível
+            if (window.LevelSelector) window.LevelSelector.refresh();
+        });
+
         // Game over buttons
         document.getElementById('btn-retry').addEventListener('click', () => {
             this.audio.playSound('buttonClick'); // 🔊 Som de clique
@@ -1065,11 +1074,14 @@ export class LabirintoDeCreta {
     }
 
     startNewGame() {
+    // aceitar level opcional via argumento
+    const levelArg = arguments[0];
     this.audio.playSound('buttonClick'); // 🔊 Som de clique
-        this.level = 1;
-        this.showScreen('game');
-                this.audio.playMusic('gameMusic'); // 🎵 Música de jogo
-        this.startLevel();
+    if (typeof levelArg === 'number') this.level = Math.max(1, Math.floor(levelArg));
+    else this.level = 1;
+    this.showScreen('game');
+    this.audio.playMusic('gameMusic'); // 🎵 Música de jogo
+    this.startLevel();
     }
 
     startLevel() {
