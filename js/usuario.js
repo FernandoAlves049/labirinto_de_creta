@@ -17,6 +17,8 @@ class Usuario {
 
 	_defaultData() {
 		return {
+			// sessão simples para controlar login/logout
+			session: { loggedIn: true, loggedAt: Date.now() },
 			id: null,
 			name: 'Jogador',
 			avatar: '⚔️',
@@ -94,6 +96,30 @@ class Usuario {
 		if (avatar !== null) this._data.avatar = avatar;
 		this.save();
 		return this;
+	}
+
+	// Login simples: atualiza perfil e marca sessão como ativa
+	login({ name = null, avatar = null } = {}){
+		if (name !== null) this._data.name = name;
+		if (avatar !== null) this._data.avatar = avatar;
+		if (!this._data.session) this._data.session = {};
+		this._data.session.loggedIn = true;
+		this._data.session.loggedAt = Date.now();
+		this.save();
+		return this;
+	}
+
+	// Logout: marca sessão como inativa (não apaga perfil)
+	logout(){
+		if (!this._data.session) this._data.session = {};
+		this._data.session.loggedIn = false;
+		this._data.session.loggedOutAt = Date.now();
+		this.save();
+		return this;
+	}
+
+	isLoggedIn(){
+		return !!(this._data.session && this._data.session.loggedIn);
 	}
 
 	updateSettings(updater) {
