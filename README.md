@@ -201,7 +201,7 @@ async function loadLevel(url) {
 
 Relance apenas quando o chamador puder tratar o erro. Caso contrário, trate localmente e forneça informações úteis.
 
-Se quiser, posso adicionar um utilitário `utils/error.js` para padronizar logging (console + envio opcional remoto) e mensagens amigáveis em todo o projeto.
+
 
 ---
 {novo}
