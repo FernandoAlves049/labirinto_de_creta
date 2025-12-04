@@ -2,9 +2,8 @@
 
 Uma experiência HTML5/Canvas onde você guia Teseu (⚔️) pelos corredores brancos de um labirinto gerado proceduralmente, fugindo do Minotauro (🐂) até alcançar a saída.
 
-**Última atualização:** Outubro/2025  
-**Versão atual:** 2.2.0  
-**Próxima release:** 2.3.0 (refinos de IA e UX)
+**Última atualização:** Novembro/2025  
+**Versão atual:** 2.2.0
 
 ---
 
@@ -45,13 +44,13 @@ labirinto_de_creta/
 
 ---
 
-## � Como executar
+## 🛠️ Como executar
 
 Recomendado rodar via um servidor local simples.
 
 Windows (PowerShell):
 ```powershell
-cd labirinto_de_creta
+cd "d:\if 4º periodo\labirinto_de_creta"
 python -m http.server 8080
 # Abra: http://localhost:8080/index.html
 ```
@@ -94,29 +93,123 @@ Abra em Menu → Configurações.
 Você também pode ajustar o volume rapidamente pelo botão 🔊 no HUD (canto superior direito).
 
 ---
+{novo}
+## 📅 Manipulação de Datas
 
-## �️ Tecnologias
+Trabalhar com datas em JavaScript é comum (tempo de jogo, histórico, estatísticas). Abaixo há exemplos práticos e dicas.
 
-- HTML5 Canvas 2D
-- JavaScript ES6+
-- CSS3 (glassmorphism, responsivo)
+### Criar e formatar datas
+
+```javascript
+// agora
+const now = new Date();
+console.log(now.toString());
+
+// ISO -> Date e validação
+const iso = '2025-11-06T12:30:00Z';
+const d = new Date(iso);
+if (Number.isNaN(d.getTime())) {
+  console.error('Data inválida');
+} else {
+  console.log(d.toLocaleString('pt-BR'));
+}
+
+// formatação localizada
+const opts = { dateStyle: 'medium', timeStyle: 'short' };
+console.log(new Date().toLocaleString('pt-BR', opts));
+```
+
+### Cálculos com datas
+
+```javascript
+// somar dias (maneira segura)
+function addDays(date, days) {
+  const copy = new Date(date.getTime());
+  copy.setDate(copy.getDate() + days);
+  return copy;
+}
+
+const hoje = new Date();
+const daqui7 = addDays(hoje, 7);
+console.log(daqui7.toLocaleDateString());
+
+// diferença em dias
+function daysBetween(a, b) {
+  const msPerDay = 24 * 60 * 60 * 1000;
+  return Math.round((b - a) / msPerDay);
+}
+```
+
+Dica: para fusos, manipulações mais avançadas e regras de calendário (DST), prefira bibliotecas como Luxon. Este projeto inclui um utilitário simples `js/date-utils.js` com helpers básicos reutilizáveis.
 
 ---
 
-## � Ajuda rápida
+## 🔒 Mecanismo de Exceção (try / catch)
+
+Tratar exceções corretamente evita que o jogo "quebre" e permite fornecer mensagens amigáveis ao jogador.
+
+### Estrutura básica
+
+```javascript
+try {
+  const data = JSON.parse(userInput);
+  processData(data);
+} catch (err) {
+  console.error('Falha ao processar entrada do usuário:', err);
+  showToast('Ops — houve um problema com seus dados. Tente novamente.');
+}
+```
+
+### Boas práticas
+
+- Trate erros no nível onde podem ser resolvidos (perto da operação que pode falhar).
+- Logue detalhes técnicos (console ou serviço remoto) e mostre mensagens simples ao usuário.
+- Evite `catch {}` vazio — sempre registre ou trate o erro.
+- Forneça fallbacks quando possível (valores padrão, telas de erro amigáveis).
+
+### Exemplo: parser seguro com fallback
+
+```javascript
+function safeParse(json, fallback = {}) {
+  try {
+    return JSON.parse(json);
+  } catch (err) {
+    console.warn('JSON inválido, retornando fallback', err);
+    return fallback;
+  }
+}
+```
+
+### async/await e tratamento
+
+```javascript
+async function loadLevel(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error('Falha ao carregar nível', err);
+    showErrorModal('Não foi possível carregar o nível. Verifique sua conexão.');
+    return null;
+  }
+}
+```
+
+### Quando relançar (`throw`)
+
+Relance apenas quando o chamador puder tratar o erro. Caso contrário, trate localmente e forneça informações úteis.
+
+
+
+---
+{novo}
+## 🛟 Ajuda rápida
 
 - Jogo não carrega: verifique o Console (F12) e acesse via servidor local.
-- Minotauro parado: aguarde replanejamento ou verifique “Mostrar caminho” em Configurações.
+- Minotauro captura de longe: verificar debug "Mostrar caminho" e ajustar `maxCellsForCapture` em `js/main.js`.
 - Sem som: ajuste o volume no HUD/Configurações e cheque permissões do navegador.
-
----
-
-## � Roadmap curto
-
-- [ ] Crossfade suave entre trilhas
-- [ ] Minimap opcional
-- [ ] Persistência de preferências (localStorage)
-- [ ] Tela de login com Google (Firebase Auth)
 
 ---
 

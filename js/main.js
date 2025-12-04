@@ -11,21 +11,23 @@ export class LabirintoDeCreta {
         this.startTime = 0;
         this.gameTime = 0;
         this.maze = null;
-        this.player = { x: 1.5, y: 1.5, r: 0.3, trail: [] };
-    this.minotaur = {
-        x: 1.5,
-        y: 1.5,
+        // reduzir levemente o raio/hitbox do Teseu para permitir movimento mais folgado
+        this.player = { x: 1.5, y: 1.5, r: 0.24, trail: [] };
+        this.minotaur = {
+            x: 1.5,
+            y: 1.5,
             state: 'CHASE',
-        vx: 0,
-        vy: 0,
-        lastDir: 0,
-        path: [],
-        nextRepath: 0,
-        pathGoal: null,
-        stuckTimer: 0,
-        lastPos: { x: 1.5, y: 1.5 },
-        lastPlayerPos: { x: 1.5, y: 1.5 }
-    };
+            vx: 0,
+            vy: 0,
+            lastDir: 0,
+            path: [],
+            nextRepath: 0,
+            pathGoal: null,
+            huntTimer: 0,
+            stuckTimer: 0,
+            lastPos: { x: 1.5, y: 1.5 },
+            lastPlayerPos: { x: 1.5, y: 1.5 }
+        };
         this.keys = new Set();
         this.threadActive = false;
         this.isRunning = false; // Estado de corrida
@@ -1100,6 +1102,9 @@ export class LabirintoDeCreta {
         this.player.y = startY;
         this.player.trail = [];
         this.threadActive = false;
+    // inicializa estado de passos (para tocar som baseado em distância)
+    this.player.lastFootstepPos = { x: this.player.x, y: this.player.y };
+    this.player.lastFootstepTime = 0;
         
         console.log(`🏃 Teseu posicionado com segurança em (${startX}, ${startY})!`);
     }
@@ -1231,7 +1236,8 @@ export class LabirintoDeCreta {
 
     // Exemplo de correção de movimento: movimentação simples + verificação de células andáveis
     updatePlayerMovement(deltaTime) {
-        const speed = this.isRunning ? 3.5 : 2.0;
+    // Aumentar velocidade do jogador: caminhada e corrida mais rápidas
+    const speed = this.isRunning ? 4.5 : 2.6;
         let dx = 0, dy = 0;
 
         if (this.keys.has('KeyW') || this.keys.has('ArrowUp')) dy -= speed * deltaTime;
@@ -1256,8 +1262,25 @@ export class LabirintoDeCreta {
 
         // Atualiza posição só se o próximo passo for válido (eixos independentes)
     // Além da célula ser andável, confirma com colisão por raio (alinha com tamanho visual ~0.45)
-    if (isWalkable(newX, this.player.y) && this.canMoveTo(newX, this.player.y, 0.45)) this.player.x = newX;
-    if (isWalkable(this.player.x, newY) && this.canMoveTo(this.player.x, newY, 0.45)) this.player.y = newY;
+    // reduzir o tamanho do teste de colisão para acompanhar a redução do hitbox
+    if (isWalkable(newX, this.player.y) && this.canMoveTo(newX, this.player.y, 0.38)) this.player.x = newX;
+    if (isWalkable(this.player.x, newY) && this.canMoveTo(this.player.x, newY, 0.38)) this.player.y = newY;
+    
+        // SONS DE PASSOS baseados em distância percorrida (mais realista que chance por frame)
+        try {
+            if (!this.player.lastFootstepPos) this.player.lastFootstepPos = { x: this.player.x, y: this.player.y };
+            const dxp = this.player.x - this.player.lastFootstepPos.x;
+            const dyp = this.player.y - this.player.lastFootstepPos.y;
+            const distSinceLast = Math.hypot(dxp, dyp);
+            const stepThreshold = this.isRunning ? 0.35 : 0.6; // ajustar conforme tamanho de célula
+            if (distSinceLast >= stepThreshold) {
+                if (this.isRunning) this.audio.playSound('runFootstep'); else this.audio.playSound('footstep');
+                this.player.lastFootstepPos.x = this.player.x;
+                this.player.lastFootstepPos.y = this.player.y;
+            }
+        } catch (e) {
+            // silencioso: não bloquear movimento por erro de áudio
+        }
     }
 
     updatePlayer(deltaTime) {
@@ -1343,15 +1366,13 @@ export class LabirintoDeCreta {
 
     updateMinotaur(deltaTime) {
         // 🐂💪 AI DO BOSS CHEFEÃO - MINOTAURO LENDÁRIO
-    // Dificuldade ajusta a velocidade base do boss
-    const diff = this._prefDifficulty || 'normal';
-    const baseSpeedMap = { easy: 0.0015, normal: 0.002, hard: 0.0026 };
-    const baseSpeed = baseSpeedMap[diff] ?? 0.002;
-    const bossSpeed = baseSpeed * (1 + this.level * 0.1); // Fica mais rápido a cada nível
-    const prevX = this.minotaur.x;
-    const prevY = this.minotaur.y;
-        
-        // Calcular distância para Teseu
+        const diff = this._prefDifficulty || 'normal';
+        const baseSpeedMap = { easy: 0.0015, normal: 0.002, hard: 0.0026 };
+        const baseSpeed = baseSpeedMap[diff] ?? 0.002;
+        const bossSpeed = baseSpeed * (1 + this.level * 0.1); // Fica mais rápido a cada nível
+        const prevX = this.minotaur.x;
+        const prevY = this.minotaur.y;
+
         const distToPlayer = Math.hypot(this.player.x - this.minotaur.x, this.player.y - this.minotaur.y);
 
         // Atualizar a última posição conhecida do jogador em tempo real
@@ -1361,50 +1382,36 @@ export class LabirintoDeCreta {
             this.minotaur.lastPlayerPos.x = this.player.x;
             this.minotaur.lastPlayerPos.y = this.player.y;
         }
-        
-        // 🎯 ESTADOS DO BOSS — sempre perseguindo Teseu
+
+        this.minotaur.huntTimer = Math.max(0, (this.minotaur.huntTimer ?? 0) - deltaTime);
+
         const previousState = this.minotaur.state;
+        const dxDirect = this.player.x - this.minotaur.x;
+        const dyDirect = this.player.y - this.minotaur.y;
+        const distDirect = Math.sqrt(dxDirect * dxDirect + dyDirect * dyDirect) || 1;
 
-        if (distToPlayer < 1.8) {
-            // Modo ataque: aceleração forte quando muito próximo
+        if (distDirect < 1.2) {
             this.minotaur.state = 'ATTACK';
-            const dx = this.player.x - this.minotaur.x;
-            const dy = this.player.y - this.minotaur.y;
-            const dist = Math.max(Math.hypot(dx, dy), 0.0001);
-
-            if (previousState !== 'ATTACK' && Math.random() < 0.3) {
+            if (previousState !== 'ATTACK' && Math.random() < 0.4) {
                 this.audio.playSound('minotaurAttack');
             }
-
-            this.minotaur.vx = (dx / dist) * bossSpeed * deltaTime * 3.0;
-            this.minotaur.vy = (dy / dist) * bossSpeed * deltaTime * 3.0;
-
+            this.minotaur.vx = (dxDirect / distDirect) * bossSpeed * deltaTime * 3.0;
+            this.minotaur.vy = (dyDirect / distDirect) * bossSpeed * deltaTime * 3.0;
         } else {
-            // Modo perseguição padrão
             this.minotaur.state = 'CHASE';
-            const dx = this.player.x - this.minotaur.x;
-            const dy = this.player.y - this.minotaur.y;
-            const dist = Math.max(Math.hypot(dx, dy), 0.0001);
-
             if (previousState !== 'CHASE') {
-                this.audio.playSound('minotaurRoar');
+                if (Math.random() < 0.25) this.audio.playSound('minotaurRoar');
                 this.audio.playMusic('chaseMusic');
             }
-
-            const chaseMultiplier = distToPlayer > 8 ? 1.5 : 2.0;
-            this.minotaur.vx = (dx / dist) * bossSpeed * deltaTime * chaseMultiplier;
-            this.minotaur.vy = (dy / dist) * bossSpeed * deltaTime * chaseMultiplier;
-
+            const chaseMultiplier = distToPlayer > 8 ? 1.7 : 2.0;
+            this.minotaur.vx = (dxDirect / distDirect) * bossSpeed * deltaTime * chaseMultiplier;
+            this.minotaur.vy = (dyDirect / distDirect) * bossSpeed * deltaTime * chaseMultiplier;
             if (Math.random() < 0.05) {
                 this.audio.playSound('heartbeat');
             }
         }
-        
-        // Definir alvo de pathfinding sempre no jogador
-        const goalCell = {
-            x: Math.floor(this.player.x),
-            y: Math.floor(this.player.y)
-        };
+
+        const goalCell = { x: Math.floor(this.player.x), y: Math.floor(this.player.y) };
 
         // Recalcular caminho periodicamente ou quando alvo muda
         const now = Date.now();
@@ -1413,13 +1420,12 @@ export class LabirintoDeCreta {
             const start = { x: Math.floor(this.minotaur.x), y: Math.floor(this.minotaur.y) };
             this.minotaur.path = this.astarGridPath(start, goalCell);
             this.minotaur.pathGoal = goalCell;
-            this.minotaur.nextRepath = now + 400; // repath mais frequente para seguir Teseu
+            this.minotaur.nextRepath = now + 250;
         }
 
         // Aumentar agressão com o tempo (boss fica mais perigoso)
         this.minotaur.aggressionLevel = Math.min(2.0, 1.0 + (this.gameTime / 30000)); // +100% agressão após 30s
 
-        // Se tem caminho, seguir próximo waypoint; senão, usa vetor atual
         const r = 0.4; // raio lógico ajustado
         if (this.minotaur.path && this.minotaur.path.length) {
             const wp = this.minotaur.path[0];
@@ -1473,17 +1479,37 @@ export class LabirintoDeCreta {
             }
 
         } else {
-            // Move minotaur with collision (vetorial antigo)
             const newX = this.minotaur.x + this.minotaur.vx;
             const newY = this.minotaur.y + this.minotaur.vy;
             if (this.canMoveTo(newX, newY, r)) {
                 this.minotaur.x = newX;
                 this.minotaur.y = newY;
             } else {
-                if (this.canMoveTo(newX, this.minotaur.y, r)) this.minotaur.x = newX; else this.minotaur.vx = -this.minotaur.vx;
-                if (this.canMoveTo(this.minotaur.x, newY, r)) this.minotaur.y = newY; else this.minotaur.vy = -this.minotaur.vy;
-                if (this.minotaur.path.length) this.minotaur.path.shift();
-                this.minotaur.nextRepath = 0;
+                let moved = false;
+                if (this.canMoveTo(newX, this.minotaur.y, r)) { this.minotaur.x = newX; moved = true; }
+                if (this.canMoveTo(this.minotaur.x, newY, r)) { this.minotaur.y = newY; moved = true; }
+                if (!moved) {
+                    this.minotaur.vx = 0;
+                    this.minotaur.vy = 0;
+                }
+            }
+        }
+
+        if (this.minotaur.x === prevX && this.minotaur.y === prevY) {
+            const dxp = this.player.x - this.minotaur.x;
+            const dyp = this.player.y - this.minotaur.y;
+            const distP = Math.sqrt(dxp * dxp + dyp * dyp) || 1;
+            const dirX = dxp / distP;
+            const dirY = dyp / distP;
+            const microSteps = [0.15, 0.1, 0.06, 0.03];
+            for (const ms of microSteps) {
+                const testX = this.minotaur.x + dirX * ms;
+                const testY = this.minotaur.y + dirY * ms;
+                if (this.canMoveTo(testX, testY, r)) {
+                    this.minotaur.x = testX;
+                    this.minotaur.y = testY;
+                    break;
+                }
             }
         }
 
@@ -1632,7 +1658,25 @@ export class LabirintoDeCreta {
         const capture = playerR + minotaurR - 0.03; // folga pequena
         const capture2 = capture * capture;
         if (dist2 <= capture2 && this._hasClearLineBetween(this.minotaur.x, this.minotaur.y, this.player.x, this.player.y)) {
-            this.gameOver();
+            // Proteção extra: confirmar que o Minotauro está realmente em modo agressivo
+            // e que o caminho A* até o jogador é curto (evita capturas 'de longe' por artefatos de LOS)
+            try {
+                const aggressive = this.minotaur.state === 'ATTACK' || this.minotaur.state === 'CHASE' || this.minotaur.state === 'HUNT';
+                const startCell = { x: Math.floor(this.minotaur.x), y: Math.floor(this.minotaur.y) };
+                const goalCell = { x: Math.floor(this.player.x), y: Math.floor(this.player.y) };
+                const path = this.astarGridPath(startCell, goalCell) || [];
+                const maxCellsForCapture = 8; // tolerância: até 8 células de distância (ajustável)
+                if (aggressive && path.length <= maxCellsForCapture) {
+                    this.gameOver();
+                } else {
+                    // log para debug quando uma captura foi ignorada por ser distante
+                    if (Math.random() < 0.05) console.log('⚠️ Captura ignorada (distante) — distCells=', path.length, 'state=', this.minotaur.state);
+                }
+            } catch (err) {
+                // Se A* falhar por algum motivo, fallback para a captura original
+                console.error('Erro ao validar captura A*:', err);
+                this.gameOver();
+            }
         }
     }
 

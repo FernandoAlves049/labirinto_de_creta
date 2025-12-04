@@ -34,14 +34,7 @@
                     <h1 class="logo-title">Labirinto de Creta</h1>
                     <p class="logo-subtitle">O Desafio do Minotauro</p>
                 </div>
-                <!-- Perfil do jogador (preenchido por js/usuario-ui.js) -->
-                <div id="user-profile" class="user-profile">
-                    <div class="user-avatar" id="user-avatar">⚔️</div>
-                    <div class="user-info">
-                        <div class="user-name" id="user-name">Jogador</div>
-                        <button id="btn-edit-profile" class="menu-btn tertiary small">✏️ Editar</button>
-                    </div>
-                </div>
+                <!-- Perfil do jogador removido (agora usamos painel no menu) -->
             </div>
             <div class="menu-buttons">
                 <button id="btn-start-game" class="menu-btn primary">
@@ -61,12 +54,31 @@
                     <span>Configurações</span>
                 </button>
             </div>
+            <!-- Painel de Perfil Rápido -->
+            <div id="profile-panel" class="profile-panel">
+                <div class="profile-top">
+                    <div class="profile-avatar" id="profile-avatar">⚔️</div>
+                    <div class="profile-info">
+                        <div class="profile-name" id="profile-name">Jogador</div>
+                        <div class="profile-stats" id="profile-stats">Jogos: 0 • Vitórias: 0 • Melhor: --</div>
+                    </div>
+                </div>
+                <div class="profile-actions">
+                    <button id="btn-edit-profile-quick" class="menu-btn tertiary small">✏️ Editar</button>
+                    <button id="btn-export-user-quick" class="menu-btn tertiary small">⬇️ Exportar</button>
+                    <button id="btn-import-user-quick" class="menu-btn tertiary small">⬆️ Importar</button>
+                    <button id="btn-login-quick" class="menu-btn secondary small">🔐 Entrar</button>
+                    <button id="btn-logout-quick" class="menu-btn tertiary small">🚪 Sair</button>
+                </div>
+            </div>
             <div class="menu-footer">
                 <p class="controls-hint">🎮 WASD para mover • SPACE para Fio • SHIFT para correr</p>
                 <p class="version-info">v2.1.0 • HTML5 Game</p>
             </div>
         </div>
     </div>
+
+    
 
     <!-- Tela de Jogo -->
     <div id="game-screen" class="screen">
@@ -274,6 +286,10 @@
     <script type="module">
     // Integração leve do Temporizador (arquivo: js/temporizador.js)
     import Temporizador from './js/temporizador.js';
+    // Utilitários de data (adicionados) — exportam funções como addDays, formatDate, etc.
+    import * as DateUtils from './js/date-utils.js';
+    // Expor globalmente para facil acesso nos scripts existentes e no console durante dev
+    window.DateUtils = DateUtils;
 
     // Instancia o temporizador e atualiza automaticamente o elemento #hud-time
     const timer = new Temporizador({ selector: '#hud-time', precision: 50 });
@@ -370,6 +386,29 @@
             <div class="modal-actions">
                 <button id="edit-profile-save" class="modal-btn primary">Salvar</button>
                 <button id="edit-profile-cancel" class="modal-btn tertiary">Cancelar</button>
+            </div>
+        </div>
+    </div>
+    <!-- Login Modal (simples) -->
+    <div id="login-modal" class="overlay">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="login-title">
+            <div class="modal-header">
+                <h2 id="login-title" class="modal-title">🔐 Entrar</h2>
+            </div>
+            <div class="modal-content">
+                <label class="setting-row column">
+                    <span>Nome do jogador</span>
+                    <input type="text" id="login-name" placeholder="Seu nome">
+                </label>
+                <label class="setting-row column">
+                    <span>Avatar</span>
+                    <input type="text" id="login-avatar" placeholder="Emoji ou texto curto">
+                </label>
+                <div class="settings-hint">Você pode usar esse formulário para alternar entre perfis locais.</div>
+            </div>
+            <div class="modal-actions">
+                <button id="login-submit" class="modal-btn primary">Entrar</button>
+                <button id="login-cancel" class="modal-btn tertiary">Cancelar</button>
             </div>
         </div>
     </div>
