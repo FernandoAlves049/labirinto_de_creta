@@ -61,6 +61,7 @@ body::before {
 	display: none;
 	align-items: center;
 	justify-content: center;
+	backdrop-filter: blur(20px);
 	transition: all 0.5s ease-in-out;
 }
 
@@ -487,6 +488,7 @@ body.theme-dark{
 		rgba(0, 0, 0, 0.7) 70%, 
 		transparent 100%
 	);
+	backdrop-filter: blur(20px);
 	padding: 1rem;
 	display: flex;
 	justify-content: space-between;
@@ -666,6 +668,7 @@ body.theme-dark{
 	text-align: center;
 	min-width: 400px;
 	max-width: 600px;
+	backdrop-filter: blur(30px);
 	box-shadow: 
 		0 25px 80px rgba(0, 0, 0, 0.5),
 		0 0 50px rgba(255, 215, 0, 0.2),

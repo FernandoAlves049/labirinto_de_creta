@@ -12,7 +12,20 @@ export class LabirintoDeCreta {
         this.gameTime = 0;
         this.maze = null;
         this.player = { x: 1.5, y: 1.5, r: 0.3, trail: [] };
-    this.minotaur = { x: 1.5, y: 1.5, state: 'PATROL', vx: 0, vy: 0, lastDir: 0, path: [], nextRepath: 0, pathGoal: null };
+    this.minotaur = {
+        x: 1.5,
+        y: 1.5,
+            state: 'CHASE',
+        vx: 0,
+        vy: 0,
+        lastDir: 0,
+        path: [],
+        nextRepath: 0,
+        pathGoal: null,
+        stuckTimer: 0,
+        lastPos: { x: 1.5, y: 1.5 },
+        lastPlayerPos: { x: 1.5, y: 1.5 }
+    };
         this.keys = new Set();
         this.threadActive = false;
         this.isRunning = false; // Estado de corrida
@@ -1019,7 +1032,7 @@ export class LabirintoDeCreta {
             console.error('⚠️ ERRO: Minotauro não foi posicionado! Corrigindo...');
             this.minotaur.x = Math.max(2.5, this.maze.width - 3);
             this.minotaur.y = Math.max(2.5, this.maze.height - 3);
-            this.minotaur.state = 'HUNT';
+            this.minotaur.state = 'CHASE';
         }
         
         this.startTime = Date.now();
@@ -1168,7 +1181,7 @@ export class LabirintoDeCreta {
         }
         
         // Configurar o boss como uma ameaça lendária
-        this.minotaur.state = 'HUNT'; // Novo estado mais agressivo
+        this.minotaur.state = 'CHASE';
     this.minotaur.vx = 0;
     this.minotaur.vy = 0;
         this.minotaur.lastDir = 0;
@@ -1176,7 +1189,6 @@ export class LabirintoDeCreta {
     this.minotaur.nextRepath = 0;
     this.minotaur.pathGoal = null;
         this.minotaur.aggressionLevel = 1.0; // Nível máximo de agressão
-        this.minotaur.huntTimer = 0;
         this.minotaur.lastPlayerPos = { x: this.player.x, y: this.player.y };
         
         // Logs do boss lendário
@@ -1336,193 +1348,79 @@ export class LabirintoDeCreta {
     const baseSpeedMap = { easy: 0.0015, normal: 0.002, hard: 0.0026 };
     const baseSpeed = baseSpeedMap[diff] ?? 0.002;
     const bossSpeed = baseSpeed * (1 + this.level * 0.1); // Fica mais rápido a cada nível
+    const prevX = this.minotaur.x;
+    const prevY = this.minotaur.y;
         
         // Calcular distância para Teseu
-        const distToPlayer = Math.sqrt(
-            Math.pow(this.player.x - this.minotaur.x, 2) + 
-            Math.pow(this.player.y - this.minotaur.y, 2)
-        );
-        
-        // Atualizar última posição conhecida do jogador
-        if (distToPlayer < 6 || this.hasLineOfSight()) {
+        const distToPlayer = Math.hypot(this.player.x - this.minotaur.x, this.player.y - this.minotaur.y);
+
+        // Atualizar a última posição conhecida do jogador em tempo real
+        if (!this.minotaur.lastPlayerPos) {
             this.minotaur.lastPlayerPos = { x: this.player.x, y: this.player.y };
-            this.minotaur.huntTimer = 5000; // Lembrar por 5 segundos
+        } else {
+            this.minotaur.lastPlayerPos.x = this.player.x;
+            this.minotaur.lastPlayerPos.y = this.player.y;
         }
         
-        // Reduzir timer de caça
-        this.minotaur.huntTimer = Math.max(0, this.minotaur.huntTimer - deltaTime);
-        
-        // 🎯 ESTADOS DO BOSS:
-        // 🔊 SONS BASEADOS NO ESTADO DO MINOTAURO
+        // 🎯 ESTADOS DO BOSS — sempre perseguindo Teseu
         const previousState = this.minotaur.state;
-        
-        if (distToPlayer < 2) {
-            // MODO ATAQUE - Muito próximo!
+
+        if (distToPlayer < 1.8) {
+            // Modo ataque: aceleração forte quando muito próximo
             this.minotaur.state = 'ATTACK';
             const dx = this.player.x - this.minotaur.x;
             const dy = this.player.y - this.minotaur.y;
-            const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-            
-            // 🔊 Som de ataque se mudou para ATTACK
+            const dist = Math.max(Math.hypot(dx, dy), 0.0001);
+
             if (previousState !== 'ATTACK' && Math.random() < 0.3) {
                 this.audio.playSound('minotaurAttack');
             }
-            
-            // Ataque direcionado muito rápido
+
             this.minotaur.vx = (dx / dist) * bossSpeed * deltaTime * 3.0;
             this.minotaur.vy = (dy / dist) * bossSpeed * deltaTime * 3.0;
-            
-        } else if (distToPlayer < 5 && this.hasLineOfSight()) {
-            // MODO CAÇA - Pode ver o jogador
+
+        } else {
+            // Modo perseguição padrão
             this.minotaur.state = 'CHASE';
             const dx = this.player.x - this.minotaur.x;
             const dy = this.player.y - this.minotaur.y;
-            const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-            
-            // 🔊 Som de rugido se mudou para CHASE
-            if (previousState !== 'CHASE' && Math.random() < 0.2) {
+            const dist = Math.max(Math.hypot(dx, dy), 0.0001);
+
+            if (previousState !== 'CHASE') {
                 this.audio.playSound('minotaurRoar');
-                this.audio.playMusic('chaseMusic'); // Música mais intensa
+                this.audio.playMusic('chaseMusic');
             }
-            
-            // Caça rápida e direcionada
-            this.minotaur.vx = (dx / dist) * bossSpeed * deltaTime * 2.0;
-            this.minotaur.vy = (dy / dist) * bossSpeed * deltaTime * 2.0;
-            
-            // 🔊 Batimentos cardíacos quando perseguido
-            if (Math.random() < 0.05) { // 5% chance por frame
+
+            const chaseMultiplier = distToPlayer > 8 ? 1.5 : 2.0;
+            this.minotaur.vx = (dx / dist) * bossSpeed * deltaTime * chaseMultiplier;
+            this.minotaur.vy = (dy / dist) * bossSpeed * deltaTime * chaseMultiplier;
+
+            if (Math.random() < 0.05) {
                 this.audio.playSound('heartbeat');
-            }
-            
-        } else if (this.minotaur.huntTimer > 0) {
-            // MODO PERSEGUIÇÃO - Vai para última posição conhecida
-            this.minotaur.state = 'HUNT';
-            const dx = this.minotaur.lastPlayerPos.x - this.minotaur.x;
-            const dy = this.minotaur.lastPlayerPos.y - this.minotaur.y;
-            const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-            
-            if (dist > 0.5) {
-                this.minotaur.vx = (dx / dist) * bossSpeed * deltaTime * 1.5;
-                this.minotaur.vy = (dy / dist) * bossSpeed * deltaTime * 1.5;
-            } else {
-                // Chegou na última posição, começar patrulha
-                this.minotaur.huntTimer = 0;
-            }
-            
-        } else {
-            // 🚶 MODO PATRULHA INTELIGENTE - EXPLORAÇÃO TOTAL DO LABIRINTO
-            this.minotaur.state = 'PATROL';
-            
-            // 🔊 Voltar música normal se saiu da perseguição
-            if (previousState === 'CHASE' || previousState === 'ATTACK') {
-                this.audio.playMusic('gameMusic');
-            }
-            
-            this.minotaur.lastDir -= deltaTime;
-            
-            if (this.minotaur.lastDir <= 0) {
-                // 🧠 MOVIMENTO INTELIGENTE: Explorar todo o labirinto
-                let targetX, targetY;
-                
-                if (Math.random() < 0.4) {
-                    // 40% - Patrulhar pontos estratégicos
-                    const strategicPoints = [
-                        { x: this.maze.width - 2, y: this.maze.height - 2 }, // Saída
-                        { x: this.maze.width / 2, y: this.maze.height / 2 }, // Centro
-                        { x: this.maze.width * 0.25, y: this.maze.height * 0.25 }, // Quadrante 1
-                        { x: this.maze.width * 0.75, y: this.maze.height * 0.25 }, // Quadrante 2
-                        { x: this.maze.width * 0.25, y: this.maze.height * 0.75 }, // Quadrante 3
-                        { x: this.maze.width * 0.75, y: this.maze.height * 0.75 }, // Quadrante 4
-                        { x: 2, y: 2 }, // Próximo ao início
-                    ];
-                    
-                    const target = strategicPoints[Math.floor(Math.random() * strategicPoints.length)];
-                    targetX = target.x;
-                    targetY = target.y;
-                    
-                } else if (Math.random() < 0.7) {
-                    // 30% - Movimento aleatório em direções válidas
-                    const directions = [];
-                    const checkDirs = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]];
-                    
-                    // Verificar direções válidas
-                    for (const [dx, dy] of checkDirs) {
-                        const testX = this.minotaur.x + dx * 3;
-                        const testY = this.minotaur.y + dy * 3;
-                        
-                        if (testX > 1 && testX < this.maze.width - 1 && 
-                            testY > 1 && testY < this.maze.height - 1 &&
-                            !this.isWall(testX, testY)) {
-                            directions.push([dx, dy]);
-                        }
-                    }
-                    
-                    if (directions.length > 0) {
-                        const [dx, dy] = directions[Math.floor(Math.random() * directions.length)];
-                        targetX = this.minotaur.x + dx * 3;
-                        targetY = this.minotaur.y + dy * 3;
-                    } else {
-                        // Fallback: mover para centro
-                        targetX = this.maze.width / 2;
-                        targetY = this.maze.height / 2;
-                    }
-                    
-                } else {
-                    // 30% - Perseguir áreas não exploradas (simulação)
-                    const unexplored = [];
-                    for (let attempts = 0; attempts < 10; attempts++) {
-                        const randX = 2 + Math.random() * (this.maze.width - 4);
-                        const randY = 2 + Math.random() * (this.maze.height - 4);
-                        
-                        if (!this.isWall(randX, randY)) {
-                            unexplored.push({ x: randX, y: randY });
-                        }
-                    }
-                    
-                    if (unexplored.length > 0) {
-                        const target = unexplored[Math.floor(Math.random() * unexplored.length)];
-                        targetX = target.x;
-                        targetY = target.y;
-                    } else {
-                        targetX = this.maze.width / 2;
-                        targetY = this.maze.height / 2;
-                    }
-                }
-                
-                // Calcular direção para o alvo
-                const dx = targetX - this.minotaur.x;
-                const dy = targetY - this.minotaur.y;
-                const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-                
-                this.minotaur.vx = (dx / dist) * bossSpeed * deltaTime;
-                this.minotaur.vy = (dy / dist) * bossSpeed * deltaTime;
-                this.minotaur.lastDir = 1000 + Math.random() * 2000; // Varia entre 1-3s
             }
         }
         
-        // Definir alvo de pathfinding
-        let goalCell = null;
-        if (this.minotaur.state === 'ATTACK' || this.minotaur.state === 'CHASE') {
-            goalCell = { x: Math.floor(this.player.x), y: Math.floor(this.player.y) };
-        } else if (this.minotaur.state === 'HUNT') {
-            goalCell = { x: Math.floor(this.minotaur.lastPlayerPos.x), y: Math.floor(this.minotaur.lastPlayerPos.y) };
-        }
+        // Definir alvo de pathfinding sempre no jogador
+        const goalCell = {
+            x: Math.floor(this.player.x),
+            y: Math.floor(this.player.y)
+        };
 
         // Recalcular caminho periodicamente ou quando alvo muda
         const now = Date.now();
-        const sameGoal = this.minotaur.pathGoal && goalCell && this.minotaur.pathGoal.x === goalCell.x && this.minotaur.pathGoal.y === goalCell.y;
-        if (goalCell && (now > this.minotaur.nextRepath || !this.minotaur.path.length || !sameGoal)) {
+        const sameGoal = this.minotaur.pathGoal && this.minotaur.pathGoal.x === goalCell.x && this.minotaur.pathGoal.y === goalCell.y;
+        if (now > this.minotaur.nextRepath || !this.minotaur.path.length || !sameGoal) {
             const start = { x: Math.floor(this.minotaur.x), y: Math.floor(this.minotaur.y) };
             this.minotaur.path = this.astarGridPath(start, goalCell);
             this.minotaur.pathGoal = goalCell;
-            this.minotaur.nextRepath = now + 750; // repath a cada 750ms
+            this.minotaur.nextRepath = now + 400; // repath mais frequente para seguir Teseu
         }
 
         // Aumentar agressão com o tempo (boss fica mais perigoso)
         this.minotaur.aggressionLevel = Math.min(2.0, 1.0 + (this.gameTime / 30000)); // +100% agressão após 30s
 
         // Se tem caminho, seguir próximo waypoint; senão, usa vetor atual
-        const r = 0.43; // raio lógico ajustado
+        const r = 0.4; // raio lógico ajustado
         if (this.minotaur.path && this.minotaur.path.length) {
             const wp = this.minotaur.path[0];
             const tx = wp.x + 0.5;
@@ -1530,7 +1428,7 @@ export class LabirintoDeCreta {
             const dx = tx - this.minotaur.x;
             const dy = ty - this.minotaur.y;
             const dist = Math.sqrt(dx*dx + dy*dy) || 1;
-            const step = bossSpeed * deltaTime * 1.8; // ajuste de ritmo
+            const step = Math.min(dist, bossSpeed * deltaTime * 1.8); // ajuste de ritmo
             const moveX = (dx / dist) * step;
             const moveY = (dy / dist) * step;
             let newX = this.minotaur.x + moveX;
@@ -1555,7 +1453,16 @@ export class LabirintoDeCreta {
                         { x: this.minotaur.x + signX*eps, y: this.minotaur.y + signY*eps }
                     ];
                     for (const c of candidates) {
-                        if (this.canMoveTo(c.x, c.y, r)) { this.minotaur.x = c.x; this.minotaur.y = c.y; break; }
+                        if (this.canMoveTo(c.x, c.y, r)) {
+                            this.minotaur.x = c.x;
+                            this.minotaur.y = c.y;
+                            moved = true;
+                            break;
+                        }
+                    }
+                    if (!moved) {
+                        if (this.minotaur.path.length) this.minotaur.path.shift();
+                        this.minotaur.nextRepath = 0;
                     }
                 }
             }
@@ -1575,6 +1482,8 @@ export class LabirintoDeCreta {
             } else {
                 if (this.canMoveTo(newX, this.minotaur.y, r)) this.minotaur.x = newX; else this.minotaur.vx = -this.minotaur.vx;
                 if (this.canMoveTo(this.minotaur.x, newY, r)) this.minotaur.y = newY; else this.minotaur.vy = -this.minotaur.vy;
+                if (this.minotaur.path.length) this.minotaur.path.shift();
+                this.minotaur.nextRepath = 0;
             }
         }
 
@@ -1585,13 +1494,33 @@ export class LabirintoDeCreta {
         const cy = Math.floor(this.minotaur.y) + 0.5;
         if (Math.abs(this.minotaur.x - cx) < 0.03) this.minotaur.x = cx;
         if (Math.abs(this.minotaur.y - cy) < 0.03) this.minotaur.y = cy;
+
+        // Monitoramento anti-trava
+        const movedDist = Math.hypot(this.minotaur.x - prevX, this.minotaur.y - prevY);
+        if (movedDist < 0.01) {
+            this.minotaur.stuckTimer += deltaTime;
+        } else {
+            this.minotaur.stuckTimer = 0;
+            this.minotaur.lastPos = { x: this.minotaur.x, y: this.minotaur.y };
+        }
+
+        if (this.minotaur.stuckTimer > 600) {
+            if (this.minotaur.path.length) this.minotaur.path.shift();
+            this.minotaur.nextRepath = 0;
+            this.minotaur.stuckTimer = 0;
+            const jitter = 0.12;
+            const angle = Math.random() * Math.PI * 2;
+            const jx = this.minotaur.x + Math.cos(angle) * jitter;
+            const jy = this.minotaur.y + Math.sin(angle) * jitter;
+            if (this.canMoveTo(jx, jy, 0.35)) {
+                this.minotaur.x = jx;
+                this.minotaur.y = jy;
+            }
+        }
     }
 
     hasLineOfSight() {
-        if (Math.random() < 0.1) {
-            return this._hasClearLineBetween(this.minotaur.x, this.minotaur.y, this.player.x, this.player.y);
-        }
-        return false;
+        return this._hasClearLineBetween(this.minotaur.x, this.minotaur.y, this.player.x, this.player.y);
     }
 
     // Raycast simples no grid para verificar linha de visão livre entre dois pontos
@@ -1803,16 +1732,8 @@ export class LabirintoDeCreta {
                 bossStatus = '🔥 ATACANDO!';
                 break;
             case 'CHASE':
-                bossStatus = '🏃‍♂️ CAÇANDO';
-                break;
-            case 'HUNT':
-                bossStatus = '🔍 PERSEGUINDO';
-                break;
-            case 'PATROL':
-                bossStatus = '🚶 PATRULHANDO';
-                break;
             default:
-                bossStatus = '🐂 ATIVO';
+                bossStatus = '🏃‍♂️ CAÇANDO';
         }
         
         minotaurElement.textContent = bossStatus;
@@ -1821,12 +1742,9 @@ export class LabirintoDeCreta {
         if (this.minotaur.state === 'ATTACK') {
             minotaurElement.style.color = '#ef4444';
             minotaurElement.style.fontWeight = 'bold';
-        } else if (this.minotaur.state === 'CHASE') {
+        } else {
             minotaurElement.style.color = '#f59e0b';
             minotaurElement.style.fontWeight = 'bold';
-        } else {
-            minotaurElement.style.color = '#10b981';
-            minotaurElement.style.fontWeight = 'normal';
         }
     }
 
@@ -1989,26 +1907,14 @@ export class LabirintoDeCreta {
         
         // Efeitos visuais baseados no estado do boss
         let shadowColor, shadowBlur, glowIntensity;
-        switch(this.minotaur.state) {
-            case 'ATTACK':
-                shadowColor = '#dc2626'; // Vermelho intenso
-                shadowBlur = 35;
-                glowIntensity = 1.2;
-                break;
-            case 'CHASE':
-                shadowColor = '#ef4444'; // Vermelho
-                shadowBlur = 25;
-                glowIntensity = 1.0;
-                break;
-            case 'HUNT':
-                shadowColor = '#f59e0b'; // Laranja
-                shadowBlur = 20;
-                glowIntensity = 0.8;
-                break;
-            default:
-                shadowColor = '#d97706'; // Laranja escuro
-                shadowBlur = 15;
-                glowIntensity = 0.6;
+        if (this.minotaur.state === 'ATTACK') {
+            shadowColor = '#dc2626';
+            shadowBlur = 35;
+            glowIntensity = 1.2;
+        } else {
+            shadowColor = '#ef4444';
+            shadowBlur = 25;
+            glowIntensity = 1.0;
         }
         
         this.ctx.shadowColor = shadowColor;
@@ -2030,26 +1936,14 @@ export class LabirintoDeCreta {
         
         // Gradiente dinâmico baseado no estado do boss
         if (this.minotaur.state === 'ATTACK') {
-            // Vermelho intenso - PERIGO MÁXIMO!
             minotaurGradient.addColorStop(0, '#fecaca');
             minotaurGradient.addColorStop(0.4, '#ef4444');
             minotaurGradient.addColorStop(0.8, '#dc2626');
             minotaurGradient.addColorStop(1, '#991b1b');
-        } else if (this.minotaur.state === 'CHASE') {
-            // Vermelho médio - ALERTA!
+        } else {
             minotaurGradient.addColorStop(0, '#fca5a5');
             minotaurGradient.addColorStop(0.6, '#ef4444');
             minotaurGradient.addColorStop(1, '#dc2626');
-        } else if (this.minotaur.state === 'HUNT') {
-            // Laranja intenso - PERSEGUIÇÃO
-            minotaurGradient.addColorStop(0, '#fed7aa');
-            minotaurGradient.addColorStop(0.6, '#f59e0b');
-            minotaurGradient.addColorStop(1, '#d97706');
-        } else {
-            // Laranja normal - PATRULHA
-            minotaurGradient.addColorStop(0, '#fcd34d');
-            minotaurGradient.addColorStop(0.6, '#f59e0b');
-            minotaurGradient.addColorStop(1, '#d97706');
         }
         
         this.ctx.fillStyle = minotaurGradient;
@@ -2063,12 +1957,10 @@ export class LabirintoDeCreta {
         // Borda do boss mais grossa e dinâmica
         const borderColors = {
             'ATTACK': '#991b1b',
-            'CHASE': '#dc2626',
-            'HUNT': '#d97706',
-            'PATROL': '#92400e'
+            'CHASE': '#dc2626'
         };
         
-        this.ctx.strokeStyle = borderColors[this.minotaur.state] || '#d97706';
+        this.ctx.strokeStyle = borderColors[this.minotaur.state] || '#dc2626';
         this.ctx.lineWidth = this.minotaur.state === 'ATTACK' ? 4 : 3;
         this.ctx.stroke();
         
